@@ -13,10 +13,8 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as ArtistRouteImport } from './routes/artist'
 import { Route as BrowseRouteImport } from './routes/browse'
 import { Route as ChartsRouteImport } from './routes/charts'
-import { Route as FreeRouteImport } from './routes/free'
 import { Route as LibraryRouteImport } from './routes/library'
 import { Route as LikedRouteImport } from './routes/liked'
-import { Route as RadioRouteImport } from './routes/radio'
 import { Route as SearchRouteImport } from './routes/search'
 import { Route as SourcesRouteImport } from './routes/sources'
 import { Route as AlbumAlbumIdRouteImport } from './routes/album.$albumId'
@@ -43,11 +41,6 @@ const ChartsRoute = ChartsRouteImport.update({
   path: '/charts',
   getParentRoute: () => rootRouteImport,
 } as any)
-const FreeRoute = FreeRouteImport.update({
-  id: '/free',
-  path: '/free',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const LibraryRoute = LibraryRouteImport.update({
   id: '/library',
   path: '/library',
@@ -56,11 +49,6 @@ const LibraryRoute = LibraryRouteImport.update({
 const LikedRoute = LikedRouteImport.update({
   id: '/liked',
   path: '/liked',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const RadioRoute = RadioRouteImport.update({
-  id: '/radio',
-  path: '/radio',
   getParentRoute: () => rootRouteImport,
 } as any)
 const SearchRoute = SearchRouteImport.update({
@@ -94,10 +82,8 @@ export interface FileRoutesByFullPath {
   '/artist': typeof ArtistRoute
   '/browse': typeof BrowseRoute
   '/charts': typeof ChartsRoute
-  '/free': typeof FreeRoute
   '/library': typeof LibraryRoute
   '/liked': typeof LikedRoute
-  '/radio': typeof RadioRoute
   '/search': typeof SearchRoute
   '/sources': typeof SourcesRoute
   '/album/$albumId': typeof AlbumAlbumIdRoute
@@ -109,10 +95,8 @@ export interface FileRoutesByTo {
   '/artist': typeof ArtistRoute
   '/browse': typeof BrowseRoute
   '/charts': typeof ChartsRoute
-  '/free': typeof FreeRoute
   '/library': typeof LibraryRoute
   '/liked': typeof LikedRoute
-  '/radio': typeof RadioRoute
   '/search': typeof SearchRoute
   '/sources': typeof SourcesRoute
   '/album/$albumId': typeof AlbumAlbumIdRoute
@@ -125,10 +109,8 @@ export interface FileRoutesById {
   '/artist': typeof ArtistRoute
   '/browse': typeof BrowseRoute
   '/charts': typeof ChartsRoute
-  '/free': typeof FreeRoute
   '/library': typeof LibraryRoute
   '/liked': typeof LikedRoute
-  '/radio': typeof RadioRoute
   '/search': typeof SearchRoute
   '/sources': typeof SourcesRoute
   '/album/$albumId': typeof AlbumAlbumIdRoute
@@ -142,10 +124,8 @@ export interface FileRouteTypes {
     | '/artist'
     | '/browse'
     | '/charts'
-    | '/free'
     | '/library'
     | '/liked'
-    | '/radio'
     | '/search'
     | '/sources'
     | '/album/$albumId'
@@ -157,10 +137,8 @@ export interface FileRouteTypes {
     | '/artist'
     | '/browse'
     | '/charts'
-    | '/free'
     | '/library'
     | '/liked'
-    | '/radio'
     | '/search'
     | '/sources'
     | '/album/$albumId'
@@ -172,10 +150,8 @@ export interface FileRouteTypes {
     | '/artist'
     | '/browse'
     | '/charts'
-    | '/free'
     | '/library'
     | '/liked'
-    | '/radio'
     | '/search'
     | '/sources'
     | '/album/$albumId'
@@ -188,10 +164,8 @@ export interface RootRouteChildren {
   ArtistRoute: typeof ArtistRoute
   BrowseRoute: typeof BrowseRoute
   ChartsRoute: typeof ChartsRoute
-  FreeRoute: typeof FreeRoute
   LibraryRoute: typeof LibraryRoute
   LikedRoute: typeof LikedRoute
-  RadioRoute: typeof RadioRoute
   SearchRoute: typeof SearchRoute
   SourcesRoute: typeof SourcesRoute
   AlbumAlbumIdRoute: typeof AlbumAlbumIdRoute
@@ -229,13 +203,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ChartsRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/free': {
-      id: '/free'
-      path: '/free'
-      fullPath: '/free'
-      preLoaderRoute: typeof FreeRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/library': {
       id: '/library'
       path: '/library'
@@ -248,13 +215,6 @@ declare module '@tanstack/react-router' {
       path: '/liked'
       fullPath: '/liked'
       preLoaderRoute: typeof LikedRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/radio': {
-      id: '/radio'
-      path: '/radio'
-      fullPath: '/radio'
-      preLoaderRoute: typeof RadioRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/search': {
@@ -300,10 +260,8 @@ const rootRouteChildren: RootRouteChildren = {
   ArtistRoute: ArtistRoute,
   BrowseRoute: BrowseRoute,
   ChartsRoute: ChartsRoute,
-  FreeRoute: FreeRoute,
   LibraryRoute: LibraryRoute,
   LikedRoute: LikedRoute,
-  RadioRoute: RadioRoute,
   SearchRoute: SearchRoute,
   SourcesRoute: SourcesRoute,
   AlbumAlbumIdRoute: AlbumAlbumIdRoute,

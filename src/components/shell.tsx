@@ -12,7 +12,6 @@ import {
   Pause,
   Play,
   Plus,
-  Radio,
   Repeat,
   Repeat1,
   Search,
@@ -37,7 +36,6 @@ import { ContextMenu, PlaylistDialog } from "@/components/tracks";
 const NAV = [
   { to: "/", label: "Home", icon: Home, exact: true },
   { to: "/search", label: "Search", icon: Search, exact: false },
-  { to: "/radio", label: "Radio", icon: Radio, exact: false },
   { to: "/library", label: "Library", icon: Library, exact: false },
   { to: "/liked", label: "Liked songs", icon: Heart, exact: false },
   { to: "/browse", label: "Artists & albums", icon: Disc3, exact: false },

@@ -2,7 +2,6 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
 import { getCharts, getShelves } from "@/lib/catalog";
-import { getFreeTracks } from "@/lib/free";
 import { useHydrated, usePlayer } from "@/lib/player-store";
 import { AlbumTile, Shelf } from "@/components/shelves";
 import { TrackList } from "@/components/tracks";
@@ -35,7 +34,6 @@ function HomeBody({
   const hydrated = useHydrated();
   const recent = usePlayer((s) => s.recentAlbums);
   const charts = useQuery({ queryKey: ["charts"], queryFn: () => getCharts(), staleTime: 60_000 });
-  const free = useQuery({ queryKey: ["free", "home"], queryFn: () => getFreeTracks({ data: { q: "" } }), staleTime: 60_000 });
 
   return (
     <div className="page-enter px-4 py-6 md:px-8">
@@ -92,16 +90,6 @@ function HomeBody({
         </div>
         {charts.isLoading ? <p className="text-muted">Ranking songs…</p> : null}
         {charts.data ? <TrackList tracks={charts.data.slice(0, 6)} /> : null}
-      </section>
-
-      <section className="mb-10">
-        <div className="mb-3 flex items-end justify-between">
-          <h2 className="text-2xl font-bold tracking-tight">Royalty-free</h2>
-          <Link to="/free" search={{ q: "" }} className="text-sm text-copper">
-            More
-          </Link>
-        </div>
-        {free.data ? <TrackList tracks={free.data.slice(0, 6)} /> : null}
       </section>
 
       <Shelf title="Genres">
