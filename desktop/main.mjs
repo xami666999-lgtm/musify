@@ -11,6 +11,33 @@ const START_HTML = `data:text/html;charset=utf-8,${encodeURIComponent(`<!doctype
 
 let server;
 let win;
+let compact = false;
+let normalBounds = null;
+let restoring = false;
+
+function setCompact(on) {
+  if (!win || compact === on) return;
+  compact = on;
+  if (on) {
+    normalBounds = win.getBounds();
+    win.setAlwaysOnTop(true, "floating");
+    win.setMinimumSize(680, 210);
+    const bounds = win.getBounds();
+    win.setBounds({ x: bounds.x, y: bounds.y, width: 720, height: 250 });
+    return;
+  }
+  win.setAlwaysOnTop(false);
+  win.setMinimumSize(960, 640);
+  const next = normalBounds ?? { x: undefined, y: undefined, width: 1280, height: 800 };
+  const bounds = win.getBounds();
+  win.setBounds({
+    x: next.x ?? bounds.x,
+    y: next.y ?? bounds.y,
+    width: Math.max(960, next.width || 1280),
+    height: Math.max(640, next.height || 800),
+  });
+  normalBounds = null;
+}
 
 function freePort() {
   return new Promise((resolve, reject) => {
@@ -76,6 +103,21 @@ async function openWindow(url) {
     },
   });
   win.setMenuBarVisibility(false);
+  win.on("page-title-updated", (event, title) => {
+    event.preventDefault();
+    if (title === "Musify Mini") setCompact(true);
+    else if (title === "Musify") setCompact(false);
+  });
+  win.on("minimize", () => {
+    if (restoring) return;
+    restoring = true;
+    if (win.isMinimized()) win.restore();
+    win.webContents
+      .executeJavaScript("window.__musifyMini?.(true)")
+      .finally(() => {
+        restoring = false;
+      });
+  });
   win.once("ready-to-show", () => win?.show());
   await win.loadURL(START_HTML);
   await waitFor(url);

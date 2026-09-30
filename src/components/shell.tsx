@@ -19,6 +19,8 @@ import {
   Shuffle,
   SkipBack,
   SkipForward,
+  ThumbsDown,
+  ThumbsUp,
   Volume2,
   VolumeX,
   X,
@@ -361,25 +363,55 @@ function MiniPlayer() {
   const pos = usePlayer((s) => s.miniPos);
   const setMiniPos = usePlayer((s) => s.setMiniPos);
   const setMini = usePlayer((s) => s.setMini);
-  const track = usePlayer((s) => s.queue[s.index]);
+  const queue = usePlayer((s) => s.queue);
+  const index = usePlayer((s) => s.index);
+  const track = queue[index];
   const playing = usePlayer((s) => s.playing);
   const toggle = usePlayer((s) => s.toggle);
   const next = usePlayer((s) => s.next);
   const prev = usePlayer((s) => s.prev);
+  const playTracks = usePlayer((s) => s.playTracks);
+  const toggleMute = usePlayer((s) => s.toggleMute);
+  const muted = usePlayer((s) => s.muted);
+  const toggleLike = usePlayer((s) => s.toggleLike);
+  const liked = usePlayer((s) => s.liked);
+  const repeat = usePlayer((s) => s.repeat);
+  const toggleRepeat = usePlayer((s) => s.toggleRepeat);
+  const time = useClock((s) => s.time);
+  const duration = useClock((s) => s.duration);
+  const seek = usePlayer((s) => s.seek);
+  const [fill, setFill] = useState(false);
+  const upcoming = queue.slice(index + 1, index + 4);
+  const total = track?.source === "Radio" ? 0 : duration || track?.duration || 0;
+  const loved = !!track && liked.some((item) => item.id === track.id);
+
+  useEffect(() => {
+    if (!mini) return;
+    const check = () => setFill(window.innerWidth < 860);
+    check();
+    window.addEventListener("resize", check);
+    return () => window.removeEventListener("resize", check);
+  }, [mini]);
+
   if (!mini) return null;
+
   return (
     <div
-      className="fixed z-50 flex w-80 touch-none items-center gap-3 border border-line bg-surface p-2"
-      style={{ left: pos.x, top: pos.y }}
+      className={cn(
+        "z-50 bg-[#1c1c1c] text-white",
+        fill ? "fixed inset-0" : "fixed w-[700px] overflow-hidden rounded-xl border border-white/10 shadow-2xl",
+      )}
+      style={fill ? undefined : { left: pos.x, top: pos.y }}
       onPointerDown={(event) => {
-        if ((event.target as HTMLElement).closest("button")) return;
+        if (fill) return;
+        if ((event.target as HTMLElement).closest("button, input, a")) return;
         const origin = usePlayer.getState().miniPos;
         const startX = event.clientX;
         const startY = event.clientY;
         const move = (ev: PointerEvent) => {
           setMiniPos({
-            x: Math.max(8, Math.min(window.innerWidth - 300, origin.x + ev.clientX - startX)),
-            y: Math.max(8, Math.min(window.innerHeight - 88, origin.y + ev.clientY - startY)),
+            x: Math.max(8, Math.min(window.innerWidth - 680, origin.x + ev.clientX - startX)),
+            y: Math.max(8, Math.min(window.innerHeight - 200, origin.y + ev.clientY - startY)),
           });
         };
         const up = () => {
@@ -390,23 +422,90 @@ function MiniPlayer() {
         window.addEventListener("pointerup", up);
       }}
     >
-      <div className="size-14 shrink-0">{track ? <Cover art={track.art} title={track.title} /> : <div className="h-full bg-surface-2" />}</div>
-      <div className="min-w-0 flex-1">
-        <p className="truncate text-sm">{track?.title ?? "Nothing playing"}</p>
-        <p className="truncate text-xs text-muted">{track?.artist ?? "Musify"}</p>
+      <div className="flex h-full min-h-[210px]">
+        <div className="flex w-[300px] shrink-0 flex-col">
+          <div className="relative min-h-0 flex-1 bg-black">
+            {track?.art ? (
+              <img src={track.art} alt="" className="absolute inset-0 h-full w-full object-cover" />
+            ) : (
+              <div className="grid h-full place-items-center text-3xl font-semibold text-white/40">{track?.title.slice(0, 1) ?? "M"}</div>
+            )}
+            <div className="absolute inset-0 bg-gradient-to-t from-black via-black/20 to-black/10" />
+            <div className="absolute right-1 top-1 flex">
+              <button type="button" aria-label={muted ? "Unmute" : "Mute"} onClick={toggleMute} className="grid size-9 place-items-center text-white/90">
+                {muted ? <VolumeX className="size-4" /> : <Volume2 className="size-4" />}
+              </button>
+              <button
+                type="button"
+                aria-label={loved ? "Unlike" : "Like"}
+                disabled={!track}
+                onClick={() => track && toggleLike(track)}
+                className={cn("grid size-9 place-items-center", loved ? "text-white" : "text-white/80")}
+              >
+                <ThumbsUp className={cn("size-4", loved && "fill-current")} />
+              </button>
+              <button type="button" aria-label="Skip" onClick={() => next(false)} className="grid size-9 place-items-center text-white/80">
+                <ThumbsDown className="size-4" />
+              </button>
+            </div>
+            <div className="absolute bottom-2 left-3 right-3">
+              <p className="truncate text-[15px] font-semibold leading-tight">{track?.title ?? "Nothing playing"}</p>
+              <p className="truncate text-[13px] text-white/70">{track?.artist ?? "Musify"}</p>
+            </div>
+          </div>
+          <div className="flex items-center gap-1 px-1 py-1">
+            <button type="button" aria-label="Previous" onClick={prev} className="grid size-8 place-items-center text-white/80">
+              <SkipBack className="size-3.5 fill-current" />
+            </button>
+            {track?.source === "Radio" ? (
+              <div className="mx-1 h-1 min-w-0 flex-1 rounded-full bg-white/25" />
+            ) : (
+              <input
+                aria-label="Seek"
+                className="min-w-0 flex-1"
+                type="range"
+                min={0}
+                max={total || 0}
+                step={0.1}
+                value={Math.min(time, total || 0)}
+                onChange={(event) => seek(Number(event.target.value))}
+              />
+            )}
+            <button type="button" aria-label="Next" onClick={() => next(false)} className="grid size-8 place-items-center text-white/80">
+              <SkipForward className="size-3.5 fill-current" />
+            </button>
+          </div>
+        </div>
+        <div className="flex min-w-0 flex-1 flex-col">
+          <div className="min-h-0 flex-1 overflow-hidden py-2">
+            {upcoming.length === 0 ? <p className="px-3 pt-2 text-sm text-white/50">Up next is empty</p> : null}
+            {upcoming.map((item, offset) => (
+              <button
+                key={`${item.id}-${offset}`}
+                type="button"
+                onClick={() => playTracks(queue, index + 1 + offset)}
+                className="flex w-full items-center gap-3 px-3 py-1.5 text-left hover:bg-white/5"
+              >
+                <span className="size-8 shrink-0 overflow-hidden rounded-sm bg-white/10">
+                  {item.art ? <img src={item.art} alt="" className="h-full w-full object-cover" /> : null}
+                </span>
+                <span className="min-w-0 truncate text-sm">{item.title}</span>
+              </button>
+            ))}
+          </div>
+          <div className="flex items-center justify-end gap-2 px-3 pb-3">
+            <button type="button" aria-label="Expand" onClick={() => setMini(false)} className="grid size-10 place-items-center text-white/80">
+              <X className="size-5" />
+            </button>
+            <button type="button" aria-label={playing ? "Pause" : "Play"} onClick={toggle} className="grid size-12 place-items-center rounded-full bg-white/15 text-white">
+              {playing ? <Pause className="size-5 fill-current" /> : <Play className="size-5 fill-current" />}
+            </button>
+            <button type="button" aria-label={repeat === "one" ? "Repeat one" : "Repeat"} onClick={toggleRepeat} className={cn("grid size-10 place-items-center", repeat === "one" ? "text-white" : "text-white/70")}>
+              {repeat === "one" ? <Repeat1 className="size-5" /> : <Repeat className="size-5" />}
+            </button>
+          </div>
+        </div>
       </div>
-      <button type="button" aria-label="Previous" onClick={prev} className="grid size-11 place-items-center">
-        <SkipBack className="size-4 fill-current" />
-      </button>
-      <button type="button" aria-label={playing ? "Pause" : "Play"} onClick={toggle} className="grid size-11 place-items-center rounded-full bg-copper text-on-copper">
-        {playing ? <Pause className="size-4 fill-current" /> : <Play className="size-4 fill-current" />}
-      </button>
-      <button type="button" aria-label="Next" onClick={() => next(false)} className="grid size-11 place-items-center">
-        <SkipForward className="size-4 fill-current" />
-      </button>
-      <button type="button" aria-label="Expand" onClick={() => setMini(false)} className="grid size-11 place-items-center text-muted">
-        <X className="size-4" />
-      </button>
     </div>
   );
 }
@@ -417,6 +516,18 @@ export function Shell({ children }: { children: ReactNode }) {
   const pathname = useRouterState({ select: (state) => state.location.pathname });
   const [navOpen, setNavOpen] = useState(false);
   useHydrated();
+
+  useEffect(() => {
+    const bridge = window as Window & { __musifyMini?: (on: boolean) => void };
+    bridge.__musifyMini = (on) => usePlayer.getState().setMini(on);
+    return () => {
+      delete bridge.__musifyMini;
+    };
+  }, []);
+
+  useEffect(() => {
+    document.title = mini ? "Musify Mini" : "Musify";
+  }, [mini]);
 
   useEffect(() => {
     setNavOpen(false);
