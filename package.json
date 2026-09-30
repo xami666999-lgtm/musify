@@ -24,7 +24,7 @@
     "lint": "eslint .",
     "format": "prettier --write .",
     "desktop:dev": "MUSIFY_DESKTOP_URL=http://127.0.0.1:8080 electron desktop/main.mjs",
-    "desktop:build": "MUSIFY_DESKTOP=1 node scripts/with-app-env.mjs vite build",
+    "desktop:build": "node scripts/desktop-build.mjs",
     "desktop:pack": "electron-builder --linux deb AppImage",
     "desktop:pack:win": "electron-builder --win nsis",
     "desktop:dist": "npm run desktop:build && npm run desktop:pack"
