@@ -1,4 +1,4 @@
-import { app, BrowserWindow, ipcMain, dialog, shell, Notification, Tray, Menu, nativeImage, globalShortcut, screen, powerMonitor } from 'electron'
+import { app, BrowserWindow, ipcMain, dialog, shell, Notification, Tray, Menu, nativeImage, globalShortcut, screen, powerMonitor, session, webRequest } from 'electron'
 
 function stripFunctions(obj: any): any {
   if (obj === null || obj === undefined) return obj
@@ -117,6 +117,224 @@ function createWindow() {
     shell.openExternal(url)
     return { action: 'deny' }
   })
+
+  setupAdBlocker(mainWindow)
+}
+
+function setupAdBlocker(window: BrowserWindow) {
+  const adDomains = [
+    'doubleclick.net',
+    'googlesyndication.com',
+    'googleadservices.com',
+    'adservice.google.com',
+    'pagead2.googlesyndication.com',
+    'ads.youtube.com',
+    'youtube.com/api/stats/ads',
+    'youtube.com/api/stats/watchtime',
+    's.youtube.com/api/stats/ads',
+    'googleads.g.doubleclick.net',
+    'static.doubleclick.net',
+    'ad.doubleclick.net',
+    'securepubads.g.doubleclick.net',
+    'pubads.g.doubleclick.net',
+    'ads.pubmatic.com',
+    'ads.rubiconproject.com',
+    'ads.yahoo.com',
+    'ads.adroll.com',
+    'ads.tremorhub.com',
+    'ads.undertone.com',
+    'adserver.adtech.de',
+    'adserver.adtechus.com',
+    'advertising.com',
+    'atdmt.com',
+    'bidvertiser.com',
+    'casalemedia.com',
+    'clickbank.net',
+    'clicksor.com',
+    'connexity.net',
+    'cpxcenter.com',
+    'edge.quantserve.com',
+    'fastclick.net',
+    'images.asian-ad.com',
+    'interclick.com',
+    'ljtags.com',
+    'media6degrees.com',
+    'mediaplex.com',
+    'openx.net',
+    'pixel.quantserve.com',
+    'realmedia.com',
+    'revenue.net',
+    'richmedia.yahoo.com',
+    'serving-sys.com',
+    'specificclick.net',
+    'tribalfusion.com',
+    'valueclick.com',
+    'w55c.net',
+    'yieldmanager.com',
+    'zedo.com',
+    'adnxs.com',
+    'adsrvr.org',
+    'adsafeprotected.com',
+    'advertising.com',
+    'atwola.com',
+    'bidr.io',
+    'bttrack.com',
+    'casalemedia.com',
+    'contextweb.com',
+    'crwdcntrl.net',
+    'ctnsnet.com',
+    'demdex.net',
+    'dmtracker.com',
+    'dotomi.com',
+    'ebdrink.com',
+    'everesttech.net',
+    'exelator.com',
+    'eyeota.net',
+    'exponential.com',
+    'fmpub.net',
+    'freewheel.com',
+    'googletagmanager.com',
+    'googletagservices.com',
+    'gumgum.com',
+    'heapanalytics.com',
+    'hotjar.com',
+    'imrworldwide.com',
+    'insightexpressai.com',
+    'invitemedia.com',
+    'ixnp.com',
+    'klaviyo.com',
+    'krxd.net',
+    'lijit.com',
+    'liveintent.com',
+    'liveramp.com',
+    'ljtags.com',
+    'lotame.com',
+    'mathtag.com',
+    'media.net',
+    'medianetwork.com',
+    'mookie1.com',
+    'mookie4.com',
+    'moatads.com',
+    'mopub.com',
+    'nrich.io',
+    'omnitagjs.com',
+    'optimizely.com',
+    'outbrain.com',
+    'parsely.com',
+    'pinterest.com',
+    'pixel.quantserve.com',
+    'quantserve.com',
+    'rlcdn.com',
+    'rubiconproject.com',
+    'scorecardresearch.com',
+    'serving-sys.com',
+    'sharethrough.com',
+    'simpli.fi',
+    'smaato.net',
+    'smartadserver.com',
+    'snapchat.com',
+    'sovrn.com',
+    'specificmedia.com',
+    'spotxchange.com',
+    'stickyadstv.com',
+    'taboola.com',
+    'tapad.com',
+    'teads.tv',
+    'thetradedesk.com',
+    'tidaltv.com',
+    'tremorhub.com',
+    'triplelift.com',
+    'turn.com',
+    'twenga.com',
+    'twitter.com/i/adsct',
+    'tynt.com',
+    'undertone.com',
+    'unruly.co',
+    'visualdna.com',
+    'w55c.net',
+    'widerplanet.com',
+    'wishabi.com',
+    'xaxis.com',
+    'xg4ken.com',
+    'yieldlab.net',
+    'yieldmo.com',
+    'yieldoptimizer.com',
+    'zedo.com',
+    'zemanta.com',
+    'zeotap.com',
+    'ziffdavis.com',
+    'googletagmanager.com',
+    'googletagservices.com',
+  ]
+
+  const adPatterns = [
+    '*://*.doubleclick.net/*',
+    '*://*.googlesyndication.com/*',
+    '*://*.googleadservices.com/*',
+    '*://*.adservice.google.com/*',
+    '*://*.youtube.com/api/stats/ads*',
+    '*://*.youtube.com/api/stats/watchtime*',
+    '*://*.s.youtube.com/api/stats/ads*',
+    '*://*.googleads.g.doubleclick.net/*',
+    '*://*.static.doubleclick.net/*',
+    '*://*.ad.doubleclick.net/*',
+    '*://*.securepubads.g.doubleclick.net/*',
+    '*://*.pubads.g.doubleclick.net/*',
+    '*://*.ads.youtube.com/*',
+    '*://*.pagead2.googlesyndication.com/*',
+    '*://*/ads/*',
+    '*://*/advert/*',
+    '*://*/advertisement/*',
+    '*://*/banner/*',
+    '*://*/sponsor/*',
+    '*://*/tracking/*',
+    '*://*/analytics/*',
+    '*://*/telemetry/*',
+    '*://*/beacon/*',
+    '*://*/pixel/*',
+    '*://*/collect/*',
+  ]
+
+  const filter = {
+    urls: adPatterns,
+  }
+
+  session.defaultSession.webRequest.onBeforeRequest(filter, (details, callback) => {
+    const url = details.url
+    const shouldBlock = adPatterns.some(pattern => {
+      const regex = new RegExp('^' + pattern.replace(/\*/g, '.*').replace(/\./g, '\\.') + '$')
+      return regex.test(url)
+    }) || adDomains.some(domain => url.includes(domain))
+
+    if (shouldBlock) {
+      callback({ cancel: true })
+    } else {
+      callback({ cancel: false })
+    }
+  })
+
+  session.defaultSession.webRequest.onHeadersReceived(filter, (details, callback) => {
+    const responseHeaders = details.responseHeaders || {}
+    const csp = responseHeaders['content-security-policy'] || responseHeaders['Content-Security-Policy']
+    
+    if (csp) {
+      const newCsp = Array.isArray(csp) ? csp[0] : csp
+      const updatedCsp = newCsp
+        .replace(/frame-src ([^;]+)/, 'frame-src $1 https://www.youtube.com https://music.youtube.com')
+        .replace(/connect-src ([^;]+)/, 'connect-src $1 https://www.youtube.com https://music.youtube.com https://*.googlevideo.com')
+      
+      callback({
+        responseHeaders: {
+          ...responseHeaders,
+          'Content-Security-Policy': updatedCsp,
+        },
+      })
+    } else {
+      callback({ responseHeaders })
+    }
+  })
+
+  console.log('[AdBlocker] Initialized with', adDomains.length, 'domains and', adPatterns.length, 'patterns')
 }
 
 function createDefaultIcon(): Electron.NativeImage {
@@ -849,6 +1067,86 @@ ipcMain.on('show-notification', (_event, title: string, body: string, icon?: str
 
 // Open external URL
 ipcMain.on('open-external', (_event, url: string) => shell.openExternal(url))
+
+// YouTube Music API
+ipcMain.handle('ytmusic-search', async (_event, query: string, filter?: string, limit?: number) => {
+  try {
+    const { youtubeMusicService } = await import('./services/youtubeMusic')
+    const results = await youtubeMusicService.search(query, filter as any, limit)
+    return { success: true, data: results }
+  } catch (error: any) {
+    return { success: false, error: error.message }
+  }
+})
+
+ipcMain.handle('ytmusic-get-stream', async (_event, videoId: string) => {
+  try {
+    const { youtubeMusicService } = await import('./services/youtubeMusic')
+    const url = await youtubeMusicService.getStreamUrl(videoId)
+    return { success: true, data: { streamUrl: url } }
+  } catch (error: any) {
+    return { success: false, error: error.message }
+  }
+})
+
+ipcMain.handle('ytmusic-get-track', async (_event, videoId: string) => {
+  try {
+    const { youtubeMusicService } = await import('./services/youtubeMusic')
+    const track = await youtubeMusicService.getTrackInfo(videoId)
+    return { success: true, data: track }
+  } catch (error: any) {
+    return { success: false, error: error.message }
+  }
+})
+
+ipcMain.handle('ytmusic-get-related', async (_event, videoId: string, limit?: number) => {
+  try {
+    const { youtubeMusicService } = await import('./services/youtubeMusic')
+    const tracks = await youtubeMusicService.getRelatedTracks(videoId, limit)
+    return { success: true, data: tracks }
+  } catch (error: any) {
+    return { success: false, error: error.message }
+  }
+})
+
+ipcMain.handle('ytmusic-get-playlist', async (_event, playlistId: string) => {
+  try {
+    const { youtubeMusicService } = await import('./services/youtubeMusic')
+    const tracks = await youtubeMusicService.getPlaylistTracks(playlistId)
+    return { success: true, data: tracks }
+  } catch (error: any) {
+    return { success: false, error: error.message }
+  }
+})
+
+ipcMain.handle('ytmusic-set-cookies', async (_event, cookiesPath: string) => {
+  try {
+    const { youtubeMusicService } = await import('./services/youtubeMusic')
+    youtubeMusicService.setCookies(cookiesPath)
+    return { success: true }
+  } catch (error: any) {
+    return { success: false, error: error.message }
+  }
+})
+
+ipcMain.handle('ytmusic-set-quality', async (_event, quality: 'high' | 'medium' | 'low') => {
+  try {
+    const { youtubeMusicService } = await import('./services/youtubeMusic')
+    youtubeMusicService.setQuality(quality)
+    return { success: true }
+  } catch (error: any) {
+    return { success: false, error: error.message }
+  }
+})
+
+// Ad blocker controls
+ipcMain.handle('adblock-get-status', () => {
+  return { success: true, enabled: true }
+})
+
+ipcMain.handle('adblock-set-enabled', async (_event, enabled: boolean) => {
+  return { success: true }
+})
 
 // App info
 ipcMain.handle('get-app-version', () => app.getVersion())

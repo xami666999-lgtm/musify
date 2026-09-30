@@ -1,100 +1,64 @@
-export interface Movie {
-  id: number;
+export interface Track {
+  id: string;
   title: string;
-  overview: string;
-  poster_path: string | null;
-  backdrop_path: string | null;
-  release_date: string;
-  vote_average: number;
-  vote_count: number;
-  genre_ids: number[];
-  media_type?: 'movie';
+  artist: string;
+  artistId?: string;
+  album?: string;
+  albumId?: string;
+  albumArtUrl?: string;
+  duration: number;
+  sourceUrl: string;
+  sourceType: 'youtube-music' | 'local' | 'piped' | 'soundcloud' | 'cached';
+  videoId?: string;
+  year?: number;
+  viewCount?: number;
+  genre?: string;
+  lyrics?: string;
+  isFavorite?: boolean;
+  cachedPath?: string;
+  addedAt?: string;
+  playCount?: number;
 }
 
-export interface TVShow {
-  id: number;
+export interface Artist {
+  id: string;
   name: string;
-  overview: string;
-  poster_path: string | null;
-  backdrop_path: string | null;
-  first_air_date: string;
-  vote_average: number;
-  vote_count: number;
-  genre_ids: number[];
-  media_type?: 'tv';
+  imageUrl?: string;
+  subscriberCount?: number;
+  description?: string;
+  genres?: string[];
 }
 
-export interface Anime {
-  id: number;
-  title: { romaji: string; english: string; native: string };
-  coverImage: { large: string; color: string };
-  bannerImage: string | null;
-  description: string;
-  averageScore: number;
-  genres: string[];
-  episodes: number;
-  status: string;
+export interface Album {
+  id: string;
+  title: string;
+  artist: string;
+  artistId?: string;
+  coverArtUrl?: string;
+  year?: number;
+  trackCount?: number;
+  tracks?: Track[];
+  releaseDate?: string;
 }
 
-export interface MediaDetail {
-  id: number;
-  title?: string;
-  name?: string;
-  overview: string;
-  poster_path: string | null;
-  backdrop_path: string | null;
-  release_date?: string;
-  first_air_date?: string;
-  vote_average: number;
-  vote_count: number;
-  runtime?: number;
-  genres: { id: number; name: string }[];
-  credits?: {
-    cast: { id: number; name: string; profile_path: string | null; character: string }[];
-    crew: { id: number; name: string; job: string; profile_path: string | null }[];
-  };
-  videos?: {
-    results: { id: string; key: string; site: string; type: string; name: string }[];
-  };
-  seasons?: {
-    id: number;
-    name: string;
-    season_number: number;
-    episode_count: number;
-    poster_path: string | null;
-    air_date: string;
-  }[];
-  episode_run_time?: number[];
-  number_of_seasons?: number;
-  number_of_episodes?: number;
+export interface Playlist {
+  id: string;
+  title: string;
+  description?: string;
+  coverArtUrl?: string;
+  trackCount: number;
+  tracks?: Track[];
+  owner?: string;
+  isPublic?: boolean;
+  createdAt?: string;
+  updatedAt?: string;
 }
 
-export interface SeasonDetail {
-  id: number;
-  name: string;
-  overview: string;
-  season_number: number;
-  episodes: Episode[];
-}
-
-export interface Episode {
-  id: number;
-  name: string;
-  overview: string;
-  episode_number: number;
-  season_number: number;
-  air_date: string;
-  still_path: string | null;
-  vote_average: number;
-  runtime: number | null;
-}
-
-export interface StreamSource {
-  url: string;
-  type: 'hls' | 'dash' | 'mp4' | 'torrent';
-  quality: string;
-  provider: string;
-  debrid?: boolean;
+export interface SearchResult {
+  tracks: Track[];
+  artists: Artist[];
+  albums: Album[];
+  playlists?: Playlist[];
 }
 
 export interface UserProfile {
@@ -106,126 +70,31 @@ export interface UserProfile {
   email?: string;
 }
 
-export interface WatchHistoryItem {
+export interface PlayHistoryItem {
   id: string;
-  mediaId: number | string;
-  mediaType: 'movie' | 'tv' | 'anime' | 'iptv';
-  title: string;
-  posterPath: string | null;
+  trackId: string;
+  track: Track;
+  playedAt: string;
   progress: number;
   duration: number;
-  season?: number;
-  episode?: number;
-  watchedAt: string;
-  profileId: string;
-  completed?: boolean;
-  seriesCompleted?: boolean;
+  completed: boolean;
 }
 
-export interface CustomList {
-  id: string;
-  name: string;
-  profileId: string;
-  items: { mediaId: number | string; mediaType: 'movie' | 'tv' | 'anime' | 'iptv'; addedAt: string; title?: string; posterPath?: string | null }[];
-}
-
-export interface StreamingService {
-  id: string;
-  name: string;
-  logo: string;
-  color: string;
-}
-
-export interface Addon {
-  id: string;
-  name: string;
-  version: string;
-  description: string;
-  icon: string;
-  resources: ('catalog' | 'meta' | 'stream' | 'subtitles')[];
-  types: ('movie' | 'tv' | 'anime')[];
-  catalogs: Catalog[];
-  idPrefixes?: string[];
-  timeout?: number;
-  config?: AddonConfig[];
-  transportUrl?: string;
-  enabled?: boolean;
-}
-
-export interface Catalog {
-  id: string;
-  name: string;
-  type: 'movie' | 'tv' | 'anime';
-  genres?: string[];
-  extra?: ExtraProp[];
-}
-
-export interface ExtraProp {
-  name: string;
-  isRequired: boolean;
-  options?: string[];
-  optionsLimit?: number;
-}
-
-export interface AddonConfig {
-  key: string;
-  title: string;
-  description: string;
-  type: 'text' | 'password' | 'boolean' | 'select' | 'number';
-  default?: any;
-  options?: { label: string; value: any }[];
-}
-
-export interface SearchResult {
-  movies: Movie[];
-  tv: TVShow[];
-  anime: Anime[];
-}
-
-export interface ContinueWatching {
-  id: string;
-  mediaId: number | string;
-  mediaType: 'movie' | 'tv' | 'anime';
-  title: string;
-  posterPath: string | null;
-  backdropPath: string | null;
-  progress: number;
-  duration: number;
-  currentTime: number;
-  season?: number;
-  episode?: number;
-  episodeTitle?: string;
-  watchedAt: string;
-  profileId: string;
-}
-
-export interface LibraryItem {
-  id: string;
-  mediaId: number | string;
-  mediaType: 'movie' | 'tv' | 'anime';
-  title: string;
-  posterPath: string | null;
-  backdropPath: string | null;
-  status: 'watching' | 'completed' | 'plan_to_watch' | 'dropped' | 'on_hold';
-  progress: number;
-  currentSeason?: number;
-  currentEpisode?: number;
-  rating?: number;
-  notes?: string;
-  addedAt: string;
-  updatedAt: string;
-  profileId: string;
+export interface LibraryState {
+  likedTracks: Track[];
+  playlists: Playlist[];
+  artists: Artist[];
+  albums: Album[];
 }
 
 export interface Settings {
   general: GeneralSettings;
   playback: PlaybackSettings;
   appearance: AppearanceSettings;
-  addons: AddonSettings;
   library: LibrarySettings;
-  profiles: ProfileSettings;
   network: NetworkSettings;
   privacy: PrivacySettings;
+  youtubeMusic: YouTubeMusicSettings;
 }
 
 export interface GeneralSettings {
@@ -234,52 +103,39 @@ export interface GeneralSettings {
   contentLanguage: string[];
   adultContent: boolean;
   autoPlayNext: boolean;
-  autoPlayTrailers: boolean;
-  skipIntro: boolean;
-  skipCredits: boolean;
+  autoPlayRelated: boolean;
+  crossfadeEnabled: boolean;
+  crossfadeDuration: number;
 }
 
 export interface PlaybackSettings {
-  quality: 'auto' | '4k' | '1080p' | '720p' | '480p' | '360p';
-  bufferSize: number;
-  hardwareAcceleration: boolean;
-  preferredAudioLanguage: string;
-  preferredSubtitleLanguage: string;
-  subtitleFontSize: number;
-  subtitleColor: string;
-  subtitleBackground: string;
-  subtitleOutline: boolean;
-  externalPlayer?: string;
-  externalPlayerArgs?: string;
+  quality: 'high' | 'medium' | 'low';
+  volume: number;
+  normalization: boolean;
+  gaplessPlayback: boolean;
+  equalizer: EqualizerSettings;
+}
+
+export interface EqualizerSettings {
+  enabled: boolean;
+  preset: 'flat' | 'bass' | 'treble' | 'vocal' | 'custom';
+  bands: number[];
 }
 
 export interface AppearanceSettings {
   theme: 'system' | 'light' | 'dark' | 'oled';
   accentColor: string;
   compactMode: boolean;
-  showBackdrops: boolean;
+  showVisualizer: boolean;
   reduceMotion: boolean;
   fontScale: number;
 }
 
-export interface AddonSettings {
-  installedAddons: string[];
-  communityAddons: string[];
-  officialAddons: string[];
-  autoUpdateAddons: boolean;
-  addonTimeout: number;
-}
-
 export interface LibrarySettings {
-  syncWithTrakt: boolean;
-  traktToken?: string;
-  autoAddToLibrary: boolean;
-  showInLibrary: ('watching' | 'completed' | 'plan_to_watch' | 'dropped' | 'on_hold')[];
-}
-
-export interface ProfileSettings {
-  profiles: UserProfile[];
-  activeProfileId: string;
+  autoAddLiked: boolean;
+  showLocalFiles: boolean;
+  localFolders: string[];
+  organizeImports: boolean;
 }
 
 export interface NetworkSettings {
@@ -288,6 +144,7 @@ export interface NetworkSettings {
   proxyPassword?: string;
   dnsOverHttps: boolean;
   customDns?: string;
+  offlineMode: boolean;
 }
 
 export interface PrivacySettings {
@@ -295,47 +152,55 @@ export interface PrivacySettings {
   crashReporting: boolean;
   shareUsageData: boolean;
   clearHistoryOnExit: boolean;
+  blockTracking: boolean;
+}
+
+export interface YouTubeMusicSettings {
+  cookiesPath?: string;
+  quality: 'high' | 'medium' | 'low';
+  useMusicApi: boolean;
+  region: string;
 }
 
 export type Page = 
   | 'home' 
-  | 'discover' 
   | 'search' 
   | 'search-results' 
   | 'library' 
   | 'settings' 
-  | 'detail' 
-  | 'player' 
-  | 'wizard'
-  | 'guide'
-  | 'provider'
-  | 'franchise'
-  | 'movies'
-  | 'tv'
-  | 'anime'
-  | 'sports'
-  | 'iptv'
-  | 'providers'
-  | 'franchises'
-  | 'manga'
-  | 'manga-detail'
-  | 'airing'
-  | 'people'
-  | 'upcoming';
+  | 'artist' 
+  | 'album' 
+  | 'playlist' 
+  | 'player'
+  | 'lyrics'
+  | 'queue';
 
 export type ViewMode = 'grid' | 'list' | 'detailed';
 
-export type SortField = 'title' | 'year' | 'rating' | 'addedAt' | 'releaseDate' | 'popularity';
+export type SortField = 'title' | 'artist' | 'album' | 'year' | 'addedAt' | 'playCount' | 'duration';
 export type SortDirection = 'asc' | 'desc';
 
 export interface FilterState {
-  type: 'movie' | 'tv' | 'anime' | 'all';
+  type: 'tracks' | 'artists' | 'albums' | 'playlists' | 'all';
   genres: string[];
   years: number[];
-  rating: [number, number];
-  status?: string[];
-  networks?: string[];
+  duration?: [number, number];
   searchQuery: string;
+}
+
+export interface PlaybackState {
+  currentTrack: Track | null;
+  queue: Track[];
+  queueIndex: number;
+  isPlaying: boolean;
+  currentTime: number;
+  duration: number;
+  volume: number;
+  isMuted: boolean;
+  repeatMode: 'off' | 'one' | 'all';
+  shuffle: boolean;
+  crossfadeEnabled: boolean;
+  crossfadeDuration: number;
 }
 
 export interface AppStore {
@@ -348,21 +213,6 @@ export interface AppStore {
   theme: 'system' | 'light' | 'dark' | 'oled';
   setTheme: (theme: 'system' | 'light' | 'dark' | 'oled') => void;
   
-  mediaItems: (Movie | TVShow | Anime)[];
-  setMediaItems: (items: (Movie | TVShow | Anime)[]) => void;
-  
-  continueWatching: ContinueWatching[];
-  setContinueWatching: (items: ContinueWatching[]) => void;
-  addToContinueWatching: (item: ContinueWatching) => void;
-  updateContinueWatching: (id: string, progress: number, currentTime: number) => void;
-  removeFromContinueWatching: (id: string) => void;
-  
-  library: LibraryItem[];
-  setLibrary: (items: LibraryItem[]) => void;
-  upsertLibraryItem: (item: LibraryItem) => void;
-  removeFromLibrary: (mediaId: string) => void;
-  getLibraryItem: (mediaId: string) => LibraryItem | undefined;
-  
   searchQuery: string;
   setSearchQuery: (query: string) => void;
   searchResults: SearchResult;
@@ -370,61 +220,36 @@ export interface AppStore {
   searchDebounceTimer: NodeJS.Timeout | null;
   setSearchDebounceTimer: (timer: NodeJS.Timeout | null) => void;
   
-  addons: Addon[];
-  setAddons: (addons: Addon[]) => void;
-  installAddon: (addon: Addon) => void;
-  uninstallAddon: (addonId: string) => void;
-  getAddon: (id: string) => Addon | undefined;
-  enabledAddons: string[];
-  setEnabledAddons: (ids: string[]) => void;
+  playbackState: PlaybackState;
+  setPlaybackState: (state: Partial<PlaybackState>) => void;
+  updatePlaybackState: (updates: Partial<PlaybackState>) => void;
+  
+  library: LibraryState;
+  setLibrary: (library: LibraryState) => void;
+  toggleLikeTrack: (track: Track) => void;
+  addPlaylist: (playlist: Playlist) => void;
+  updatePlaylist: (id: string, updates: Partial<Playlist>) => void;
+  deletePlaylist: (id: string) => void;
+  
+  playHistory: PlayHistoryItem[];
+  addToHistory: (track: Track, progress: number, duration: number, completed: boolean) => void;
+  clearHistory: () => void;
   
   settings: Settings;
   setSettings: (settings: Partial<Settings>) => void;
   
-  playerState: PlayerState | null;
-  setPlayerState: (state: PlayerState | null) => void;
+  lyricsPanelOpen: boolean;
+  toggleLyricsPanel: () => void;
   
-  profiles: UserProfile[];
-  setProfiles: (profiles: UserProfile[]) => void;
-  activeProfile: UserProfile | null;
-  setActiveProfile: (profile: UserProfile | null) => void;
-  addProfile: (profile: UserProfile) => void;
-  updateProfile: (id: string, updates: Partial<UserProfile>) => void;
-  removeProfile: (id: string) => void;
+  queueDrawerOpen: boolean;
+  toggleQueueDrawer: () => void;
+  
+  miniPlayerOpen: boolean;
+  toggleMiniPlayer: () => void;
   
   notifications: Notification[];
   addNotification: (notification: Omit<Notification, 'id'>) => void;
   removeNotification: (id: string) => void;
-}
-
-export interface PlayerState {
-  mediaId: number | string;
-  mediaType: 'movie' | 'tv' | 'anime';
-  title: string;
-  posterPath: string | null;
-  backdropPath: string | null;
-  stream: StreamSource;
-  subtitles: Subtitle[];
-  currentTime: number;
-  duration: number;
-  playing: boolean;
-  volume: number;
-  muted: boolean;
-  fullscreen: boolean;
-  quality: string;
-  audioTrack: number;
-  subtitleTrack: number;
-  seasonNumber?: number;
-  episodeNumber?: number;
-  nextEpisode?: Episode;
-}
-
-export interface Subtitle {
-  id: string;
-  url: string;
-  language: string;
-  label: string;
-  hearingImpaired?: boolean;
 }
 
 export interface Notification {
@@ -437,4 +262,157 @@ export interface Notification {
     label: string;
     onClick: () => void;
   };
+}
+
+export interface Subtitle {
+  id: string;
+  url: string;
+  language: string;
+  label: string;
+  hearingImpaired?: boolean;
+}
+
+export interface LyricsLine {
+  time: number;
+  text: string;
+}
+
+export interface LyricsData {
+  synced: boolean;
+  lines: LyricsLine[];
+  provider: string;
+}
+
+export interface VisualizerData {
+  frequencyData: Uint8Array | null;
+  waveformData: Uint8Array | null;
+}
+
+export type ThemeId = string;
+
+export interface Theme {
+  id: ThemeId;
+  name: string;
+  displayName: string;
+  description?: string;
+  author?: string;
+  version?: string;
+  previewImages?: string[];
+  isBuiltIn: boolean;
+  isActive: boolean;
+  config: ThemeConfig;
+  assets?: Record<string, string>;
+  layouts?: ThemeLayouts;
+  animations?: ThemeAnimations;
+  sounds?: ThemeSounds;
+}
+
+export interface ThemeConfig {
+  colors: ThemeColors;
+  fonts: ThemeFonts;
+  spacing: ThemeSpacing;
+  borderRadius: ThemeBorderRadius;
+  shadows: ThemeShadows;
+  transitions: ThemeTransitions;
+  backgroundEffects: ThemeBackgroundEffects;
+  informationDensity: 'comfortable' | 'compact' | 'spacious';
+}
+
+export interface ThemeColors {
+  primary: string;
+  secondary: string;
+  accent: string;
+  background: string;
+  surface: string;
+  surfaceVariant: string;
+  outline: string;
+  outlineVariant: string;
+  text: string;
+  textSecondary: string;
+  textMuted: string;
+  error: string;
+  success: string;
+  warning: string;
+  info: string;
+  overlay: string;
+  backdrop: string;
+}
+
+export interface ThemeFonts {
+  display: string;
+  heading: string;
+  body: string;
+  mono: string;
+  ui: string;
+  sizes: Record<string, string>;
+  weights: Record<string, number>;
+}
+
+export interface ThemeSpacing {
+  xs: string;
+  sm: string;
+  md: string;
+  lg: string;
+  xl: string;
+  xxl: string;
+}
+
+export interface ThemeBorderRadius {
+  none: string;
+  sm: string;
+  md: string;
+  lg: string;
+  xl: string;
+  full: string;
+}
+
+export interface ThemeShadows {
+  none: string;
+  sm: string;
+  md: string;
+  lg: string;
+  xl: string;
+  glow: string;
+  glowStrong: string;
+}
+
+export interface ThemeTransitions {
+  fast: string;
+  normal: string;
+  slow: string;
+  easing: string;
+}
+
+export interface ThemeBackgroundEffects {
+  enabled: boolean;
+  type: 'none' | 'gradient' | 'mesh' | 'particles' | 'blur';
+  intensity: number;
+}
+
+export interface ThemeLayouts {
+  home: { type: 'hero' | 'grid' | 'list' | 'carousel' };
+  library: { type: 'grid' | 'list' | 'detailed' };
+  search: { type: 'dropdown' | 'full' | 'inline' };
+  player: { type: 'bar' | 'full' | 'mini' | 'theater' };
+  gameCard: { aspectRatio: string; hoverEffect: 'lift' | 'glow' | 'scale' | 'reveal' };
+  navigation: { type: 'sidebar' | 'bottom' | 'top' | 'rail'; position: 'left' | 'right' | 'bottom' | 'top' };
+}
+
+export interface ThemeAnimations {
+  enabled: boolean;
+  duration: number;
+  easing: string;
+  pageTransition: 'fade' | 'slide' | 'zoom' | 'none';
+  hoverScale: number;
+  pressScale: number;
+}
+
+export interface ThemeSounds {
+  enabled: boolean;
+  volume: number;
+  click: string;
+  hover: string;
+  transition: string;
+  notification: string;
+  error: string;
 }

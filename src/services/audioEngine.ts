@@ -353,14 +353,25 @@ export class AudioEngine {
     if (track.sourceType === 'local' || track.sourceType === 'cached') {
       // For local/cached tracks, use the cached path or source URL directly
       streamUrl = track.cachedPath || track.sourceUrl!
-    } else {
-      // For streaming sources, resolve through the stream service
-      const stream = await window.electronAPI.stream.resolve(track.id, track.sourceUrl!, track.sourceType)
+    } else if (track.sourceType === 'youtube-music' && track.videoId) {
+      // Use YouTube Music API to get stream URL
+      const stream = await window.electronAPI.ytmusic.getStream(track.videoId)
+      if (!stream.success || !stream.data) {
+        console.error('YTMusic stream resolution failed:', stream.error)
+        return
+      }
+      streamUrl = stream.data.streamUrl
+    } else if (track.sourceType === 'piped' && track.videoId) {
+      // Fallback for Piped instances
+      const stream = await window.electronAPI.ytmusic.getStream(track.videoId)
       if (!stream.success || !stream.data) {
         console.error('Stream resolution failed:', stream.error)
         return
       }
       streamUrl = stream.data.streamUrl
+    } else {
+      console.error('Unsupported source type:', track.sourceType)
+      return
     }
     
     await this.playTrack(track, streamUrl)

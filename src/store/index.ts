@@ -4,14 +4,13 @@ import type {
   AppStore,
   Page,
   Settings,
-  ContinueWatching,
-  LibraryItem,
   SearchResult,
-  Addon,
-  PlayerState,
+  PlaybackState,
+  Track,
+  Playlist,
+  LibraryState,
+  PlayHistoryItem,
   Notification,
-  UserProfile,
-  Subtitle,
 } from '../types';
 
 const defaultSettings: Settings = {
@@ -21,54 +20,73 @@ const defaultSettings: Settings = {
     contentLanguage: ['en'],
     adultContent: false,
     autoPlayNext: true,
-    autoPlayTrailers: false,
-    skipIntro: false,
-    skipCredits: false,
+    autoPlayRelated: true,
+    crossfadeEnabled: true,
+    crossfadeDuration: 5,
   },
   playback: {
-    quality: 'auto',
-    bufferSize: 10,
-    hardwareAcceleration: true,
-    preferredAudioLanguage: 'en',
-    preferredSubtitleLanguage: 'en',
-    subtitleFontSize: 16,
-    subtitleColor: '#ffffff',
-    subtitleBackground: 'rgba(0,0,0,0.7)',
-    subtitleOutline: true,
+    quality: 'high',
+    volume: 0.8,
+    normalization: true,
+    gaplessPlayback: true,
+    equalizer: {
+      enabled: false,
+      preset: 'flat',
+      bands: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+    },
   },
   appearance: {
     theme: 'system',
-    accentColor: '#e50914',
+    accentColor: '#ff6b35',
     compactMode: false,
-    showBackdrops: true,
+    showVisualizer: true,
     reduceMotion: false,
     fontScale: 1,
   },
-  addons: {
-    installedAddons: [],
-    communityAddons: [],
-    officialAddons: [],
-    autoUpdateAddons: true,
-    addonTimeout: 10000,
-  },
   library: {
-    syncWithTrakt: false,
-    autoAddToLibrary: true,
-    showInLibrary: ['watching', 'completed', 'plan_to_watch'],
-  },
-  profiles: {
-    profiles: [],
-    activeProfileId: '',
+    autoAddLiked: true,
+    showLocalFiles: false,
+    localFolders: [],
+    organizeImports: true,
   },
   network: {
     dnsOverHttps: false,
+    offlineMode: false,
   },
   privacy: {
     analytics: false,
     crashReporting: false,
     shareUsageData: false,
     clearHistoryOnExit: false,
+    blockTracking: true,
   },
+  youtubeMusic: {
+    quality: 'high',
+    useMusicApi: true,
+    region: 'US',
+  },
+};
+
+const defaultPlaybackState: PlaybackState = {
+  currentTrack: null,
+  queue: [],
+  queueIndex: -1,
+  isPlaying: false,
+  currentTime: 0,
+  duration: 0,
+  volume: 0.8,
+  isMuted: false,
+  repeatMode: 'off',
+  shuffle: false,
+  crossfadeEnabled: true,
+  crossfadeDuration: 5,
+};
+
+const defaultLibrary: LibraryState = {
+  likedTracks: [],
+  playlists: [],
+  artists: [],
+  albums: [],
 };
 
 export const useStore = create<AppStore>()(
@@ -76,72 +94,80 @@ export const useStore = create<AppStore>()(
     (set, get) => ({
       currentPage: 'home',
       setCurrentPage: (page: Page) => set({ currentPage: page }),
-      
+
       sidebarCollapsed: false,
       setSidebarCollapsed: (collapsed: boolean) => set({ sidebarCollapsed: collapsed }),
-      
+
       theme: 'system',
       setTheme: (theme) => set({ theme }),
-      
-      mediaItems: [],
-      setMediaItems: (items) => set({ mediaItems: items }),
-      
-      continueWatching: [],
-      setContinueWatching: (items: ContinueWatching[]) => set({ continueWatching: items }),
-      addToContinueWatching: (item: ContinueWatching) =>
-        set((state) => {
-          const filtered = state.continueWatching.filter((cw) => cw.mediaId !== item.mediaId || cw.profileId !== item.profileId);
-          return { continueWatching: [item, ...filtered].slice(0, 20) };
-        }),
-      updateContinueWatching: (id: string, progress: number, currentTime: number) =>
-        set((state) => ({
-          continueWatching: state.continueWatching.map((cw) =>
-            cw.id === id ? { ...cw, progress, currentTime, watchedAt: new Date().toISOString() } : cw
-          ),
-        })),
-      removeFromContinueWatching: (id: string) =>
-        set((state) => ({
-          continueWatching: state.continueWatching.filter((cw) => cw.id !== id),
-        })),
-      
-      library: [],
-      setLibrary: (items: LibraryItem[]) => set({ library: items }),
-      upsertLibraryItem: (item: LibraryItem) =>
-        set((state) => ({
-          library: state.library.some((l) => l.mediaId === item.mediaId && l.profileId === item.profileId)
-            ? state.library.map((l) => (l.mediaId === item.mediaId && l.profileId === item.profileId ? item : l))
-            : [item, ...state.library],
-        })),
-      removeFromLibrary: (mediaId: string) =>
-        set((state) => ({
-          library: state.library.filter((l) => l.mediaId !== mediaId),
-        })),
-      getLibraryItem: (mediaId: string) => get().library.find((l) => l.mediaId === mediaId),
-      
+
       searchQuery: '',
       setSearchQuery: (query: string) => set({ searchQuery: query }),
-      searchResults: { movies: [], tv: [], anime: [] },
+      searchResults: { tracks: [], artists: [], albums: [], playlists: [] },
       setSearchResults: (results: SearchResult) => set({ searchResults: results }),
       searchDebounceTimer: null,
       setSearchDebounceTimer: (timer) => set({ searchDebounceTimer: timer }),
-      
-      addons: [],
-      setAddons: (addons: Addon[]) => set({ addons }),
-      installAddon: (addon: Addon) =>
-        set((state) => ({
-          addons: state.addons.some((a) => a.id === addon.id)
-            ? state.addons.map((a) => (a.id === addon.id ? addon : a))
-            : [...state.addons, addon],
+
+      playbackState: defaultPlaybackState,
+      setPlaybackState: (state: Partial<PlaybackState>) =>
+        set((s) => ({ playbackState: { ...s.playbackState, ...state } })),
+      updatePlaybackState: (updates: Partial<PlaybackState>) =>
+        set((s) => ({ playbackState: { ...s.playbackState, ...updates } })),
+
+      library: defaultLibrary,
+      setLibrary: (library: LibraryState) => set({ library }),
+      toggleLikeTrack: (track: Track) =>
+        set((s) => {
+          const liked = s.library.likedTracks;
+          const exists = liked.find((t) => t.id === track.id);
+          return {
+            library: {
+              ...s.library,
+              likedTracks: exists
+                ? liked.filter((t) => t.id !== track.id)
+                : [{ ...track, isFavorite: true }, ...liked],
+            },
+          };
+        }),
+      addPlaylist: (playlist: Playlist) =>
+        set((s) => ({
+          library: { ...s.library, playlists: [playlist, ...s.library.playlists] },
         })),
-      uninstallAddon: (addonId: string) =>
-        set((state) => ({
-          addons: state.addons.filter((a) => a.id !== addonId),
-          enabledAddons: state.enabledAddons.filter((id) => id !== addonId),
+      updatePlaylist: (id: string, updates: Partial<Playlist>) =>
+        set((s) => ({
+          library: {
+            ...s.library,
+            playlists: s.library.playlists.map((p) =>
+              p.id === id ? { ...p, ...updates } : p
+            ),
+          },
         })),
-      getAddon: (id: string) => get().addons.find((a) => a.id === id),
-      enabledAddons: [],
-      setEnabledAddons: (ids: string[]) => set({ enabledAddons: ids }),
-      
+      deletePlaylist: (id: string) =>
+        set((s) => ({
+          library: {
+            ...s.library,
+            playlists: s.library.playlists.filter((p) => p.id !== id),
+          },
+        })),
+
+      playHistory: [],
+      addToHistory: (track: Track, progress: number, duration: number, completed: boolean) =>
+        set((s) => ({
+          playHistory: [
+            {
+              id: crypto.randomUUID(),
+              trackId: track.id,
+              track,
+              playedAt: new Date().toISOString(),
+              progress,
+              duration,
+              completed,
+            },
+            ...s.playHistory.filter((h) => h.trackId !== track.id).slice(0, 999),
+          ],
+        })),
+      clearHistory: () => set({ playHistory: [] }),
+
       settings: defaultSettings,
       setSettings: (partialSettings: Partial<Settings>) =>
         set((state) => ({
@@ -151,59 +177,49 @@ export const useStore = create<AppStore>()(
             general: { ...state.settings.general, ...partialSettings.general },
             playback: { ...state.settings.playback, ...partialSettings.playback },
             appearance: { ...state.settings.appearance, ...partialSettings.appearance },
-            addons: { ...state.settings.addons, ...partialSettings.addons },
             library: { ...state.settings.library, ...partialSettings.library },
-            profiles: { ...state.settings.profiles, ...partialSettings.profiles },
             network: { ...state.settings.network, ...partialSettings.network },
             privacy: { ...state.settings.privacy, ...partialSettings.privacy },
+            youtubeMusic: { ...state.settings.youtubeMusic, ...partialSettings.youtubeMusic },
           },
         })),
-      
-      playerState: null,
-      setPlayerState: (state: PlayerState | null) => set({ playerState: state }),
-      
-      profiles: [],
-      setProfiles: (profiles: UserProfile[]) => set({ profiles }),
-      activeProfile: null,
-      setActiveProfile: (profile: UserProfile | null) => set({ activeProfile: profile }),
-      addProfile: (profile: UserProfile) =>
-        set((state) => ({
-          profiles: [...state.profiles, profile],
-          activeProfile: state.profiles.length === 0 ? profile : state.activeProfile,
-        })),
-      updateProfile: (id: string, updates: Partial<UserProfile>) =>
-        set((state) => ({
-          profiles: state.profiles.map((p) => (p.id === id ? { ...p, ...updates } : p)),
-          activeProfile: state.activeProfile?.id === id ? { ...state.activeProfile, ...updates } : state.activeProfile,
-        })),
-      removeProfile: (id: string) =>
-        set((state) => ({
-          profiles: state.profiles.filter((p) => p.id !== id),
-          activeProfile: state.activeProfile?.id === id ? (state.profiles[1] || null) : state.activeProfile,
-        })),
-      
+
+      lyricsPanelOpen: false,
+      toggleLyricsPanel: () => set((s) => ({ lyricsPanelOpen: !s.lyricsPanelOpen })),
+
+      queueDrawerOpen: false,
+      toggleQueueDrawer: () => set((s) => ({ queueDrawerOpen: !s.queueDrawerOpen })),
+
+      miniPlayerOpen: false,
+      toggleMiniPlayer: () => set((s) => ({ miniPlayerOpen: !s.miniPlayerOpen })),
+
       notifications: [],
       addNotification: (notification) =>
-        set((state) => ({
-          notifications: [...state.notifications, { ...notification, id: crypto.randomUUID() }],
+        set((s) => ({
+          notifications: [...s.notifications, { ...notification, id: crypto.randomUUID() }],
         })),
       removeNotification: (id: string) =>
-        set((state) => ({
-          notifications: state.notifications.filter((n) => n.id !== id),
+        set((s) => ({
+          notifications: s.notifications.filter((n) => n.id !== id),
         })),
     }),
     {
-      name: 'mfy-storage',
+      name: 'musify-storage',
       storage: createJSONStorage(() => localStorage),
       partialize: (state) => ({
         sidebarCollapsed: state.sidebarCollapsed,
         theme: state.theme,
-        continueWatching: state.continueWatching,
         library: state.library,
-        enabledAddons: state.enabledAddons,
+        playHistory: state.playHistory.slice(0, 500),
         settings: state.settings,
-        profiles: state.profiles,
-        activeProfile: state.activeProfile,
+        playbackState: {
+          volume: state.playbackState.volume,
+          isMuted: state.playbackState.isMuted,
+          repeatMode: state.playbackState.repeatMode,
+          shuffle: state.playbackState.shuffle,
+          crossfadeEnabled: state.playbackState.crossfadeEnabled,
+          crossfadeDuration: state.playbackState.crossfadeDuration,
+        },
       }),
     }
   )

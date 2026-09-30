@@ -2,7 +2,7 @@ import * as React from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Search, X, Music, User, Album, TrendingUp, Clock, Loader2 } from 'lucide-react'
 import { useStore } from '../../store'
-import { streamService } from '../../services/stream'
+import { audioEngine } from '../../services/audioEngine'
 import { Button } from '../ui/Button'
 import { Badge } from '../ui/Badge'
 import { ScrollArea } from '../ui/ScrollArea'
@@ -11,12 +11,12 @@ import { formatTime } from '../../lib/utils'
 
 interface SearchResultItemProps {
   item: any
-  type: 'track' | 'artist' | 'album'
+  type: 'track' | 'artist' | 'album' | 'playlist'
   onClick: () => void
 }
 
 const SearchResultItem: React.FC<SearchResultItemProps> = ({ item, type, onClick }) => {
-  const icons = { track: Music, artist: User, album: Album }
+  const icons = { track: Music, artist: User, album: Album, playlist: Music }
   const Icon = icons[type]
 
   return (
@@ -57,7 +57,12 @@ const SearchResultItem: React.FC<SearchResultItemProps> = ({ item, type, onClick
   )
 }
 
-export const SearchBar: React.FC = () => {
+interface SearchBarProps {
+  placeholder?: string
+  className?: string
+}
+
+export const SearchBar: React.FC<SearchBarProps> = ({ placeholder = "Search songs, artists, albums...", className = "" }) => {
   const {
     searchQuery,
     setSearchQuery,
@@ -95,20 +100,22 @@ export const SearchBar: React.FC = () => {
     }
 
     if (value.length < 2) {
-      setSearchResults({ tracks: [], artists: [], albums: [] })
+      setSearchResults({ tracks: [], artists: [], albums: [], playlists: [] })
       return
     }
 
     const timer = window.setTimeout(async () => {
       try {
-        const results = await streamService.search(value, 'tracks', 10)
-        setSearchResults(results)
+        const results = await window.electronAPI.ytmusic.search(value, 'songs', 10)
+        if (results.success && results.data) {
+          setSearchResults(results.data)
+        }
       } catch (error) {
         console.error('Search error:', error)
       }
     }, 300)
 
-    setSearchDebounceTimer(timer)
+    setSearchDebounceTimer(timer as unknown as NodeJS.Timeout)
   }
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
@@ -149,14 +156,15 @@ export const SearchBar: React.FC = () => {
 
   const handleResultClick = async (item: any) => {
     if (item.type === 'track') {
-      const { audioEngine } = require('../../services/audioEngine')
-      const stream = await streamService.resolveStream(item.id, item.sourceUrl, item.sourceType)
+      const stream = await window.electronAPI.ytmusic.getStream(item.videoId || item.id)
       if (stream.success && stream.data) {
         audioEngine.playTrack(item, stream.data.streamUrl)
       }
     } else if (item.type === 'artist') {
       setCurrentPage('search-results')
     } else if (item.type === 'album') {
+      setCurrentPage('search-results')
+    } else if (item.type === 'playlist') {
       setCurrentPage('search-results')
     }
     setShowDropdown(false)
@@ -171,7 +179,7 @@ export const SearchBar: React.FC = () => {
     inputRef.current?.focus()
   }
 
-  const hasResults = searchResults.tracks.length > 0 || searchResults.artists.length > 0 || searchResults.albums.length > 0
+  const hasResults = searchResults.tracks.length > 0 || searchResults.artists.length > 0 || searchResults.albums.length > 0 || (searchResults.playlists?.length || 0) > 0
 
   return (
     <div className="relative w-full max-w-xl">
@@ -184,12 +192,13 @@ export const SearchBar: React.FC = () => {
           onChange={handleInputChange}
           onKeyDown={handleKeyDown}
           onFocus={() => searchQuery.length > 0 && hasResults && setShowDropdown(true)}
-          placeholder="Search songs, artists, albums..."
+          placeholder={placeholder}
           className={cn(
             'input-base w-full pl-12 pr-12 py-2.5',
             'bg-mfy-dark-300/50 border-white/10',
             'focus:border-pink-500/50 focus:ring-2 focus:ring-pink-500/20',
-            'placeholder-white/30'
+            'placeholder-white/30',
+            className
           )}
           aria-label="Search"
           aria-autocomplete="list"
@@ -247,6 +256,14 @@ export const SearchBar: React.FC = () => {
                     item={album}
                     type="album"
                     onClick={() => handleResultClick({ ...album, type: 'album' })}
+                  />
+                ))}
+                {searchResults.playlists?.slice(0, 3).map((playlist, index) => (
+                  <SearchResultItem
+                    key={`playlist-${playlist.id}`}
+                    item={playlist}
+                    type="playlist"
+                    onClick={() => handleResultClick({ ...playlist, type: 'playlist' })}
                   />
                 ))}
               </div>

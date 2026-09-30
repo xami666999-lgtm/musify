@@ -1,27 +1,24 @@
 import * as React from 'react'
 import { motion } from 'framer-motion'
+import { Home, Search, Library, Settings, Heart, Music, ListMusic, User } from 'lucide-react'
 import { useStore } from '../../store'
 import { Button } from '../ui/Button'
 import { Badge } from '../ui/Badge'
+import { cn } from '../ui/Button'
 
 interface SidebarProps {
   onNavigate: (page: string) => void
 }
 
 const NAV_ITEMS = [
-  { id: 'home', label: 'Home' },
-  { id: 'games', label: 'Games' },
-  { id: 'systems', label: 'Systems' },
-  { id: 'emulators', label: 'Emulators' },
-  { id: 'themes', label: 'Themes' },
-  { id: 'downloads', label: 'Downloads' },
-  { id: 'saves', label: 'Saves' },
-  { id: 'controllers', label: 'Controllers' },
-  { id: 'settings', label: 'Settings' },
+  { id: 'home', label: 'Home', icon: Home },
+  { id: 'search', label: 'Search', icon: Search },
+  { id: 'library', label: 'Library', icon: Library },
+  { id: 'settings', label: 'Settings', icon: Settings },
 ]
 
 export const Sidebar: React.FC<SidebarProps> = ({ onNavigate }) => {
-  const { currentPage, sidebarCollapsed, toggleSidebar } = useStore()
+  const { currentPage, sidebarCollapsed, toggleSidebar, library } = useStore()
 
   return (
     <motion.aside
@@ -34,7 +31,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ onNavigate }) => {
       <div className="flex items-center justify-between h-16 px-4 border-b border-white/5">
         {!sidebarCollapsed && (
           <div className="flex items-center gap-2">
-            <span className="font-display font-bold text-lg gradient-text">MFY</span>
+            <span className="font-display font-bold text-lg gradient-text">Musify</span>
           </div>
         )}
         <Button
@@ -52,23 +49,23 @@ export const Sidebar: React.FC<SidebarProps> = ({ onNavigate }) => {
         <ul className="space-y-0.5" role="list">
           {NAV_ITEMS.map((item) => {
             const isActive = currentPage === item.id
+            const Icon = item.icon
 
             return (
               <motion.li key={item.id} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.05 }}>
                 <button
                   onClick={() => onNavigate(item.id)}
-                  className={
+                  className={cn(
+                    'w-full flex items-center gap-3 px-3 py-2 rounded-lg transition-all duration-200',
                     isActive
-                      ? 'w-full flex items-center gap-3 px-3 py-2 rounded-lg text-white bg-white/10 font-medium transition-all duration-200'
-                      : 'w-full flex items-center gap-3 px-3 py-2 rounded-lg text-white/70 hover:text-white hover:bg-white/5 transition-all duration-200'
-                  }
+                      ? 'text-white bg-white/10 font-medium'
+                      : 'text-white/70 hover:text-white hover:bg-white/5'
+                  )}
                   aria-current={isActive ? 'page' : undefined}
                   aria-label={item.label}
                 >
-                  <span>{item.label}</span>
-                  {item.badge && (
-                    <Badge variant="pink" size="sm" className="ml-auto">{item.badge}</Badge>
-                  )}
+                  <Icon className={cn('w-5 h-5 flex-shrink-0', isActive && 'text-pink-400')} />
+                  {!sidebarCollapsed && <span>{item.label}</span>}
                 </button>
               </motion.li>
             )
@@ -79,7 +76,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ onNavigate }) => {
       <div className="p-3 border-t border-white/5">
         {!sidebarCollapsed && (
           <div className="flex items-center gap-3 px-3 py-2 rounded-lg glass border border-white/5">
-            <span className="text-pink-400 text-sm">MFY Emulator</span>
+            <span className="text-pink-400 text-sm">Musify</span>
             <span className="text-xs text-white/40">v1.0.0</span>
           </div>
         )}

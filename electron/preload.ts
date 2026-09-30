@@ -92,6 +92,23 @@ contextBridge.exposeInMainWorld('electronAPI', {
   // External
   openExternal: (url: string) => ipcRenderer.send('open-external', url),
 
+  // YouTube Music
+  ytmusic: {
+    search: (query: string, filter?: string, limit?: number) => ipcRenderer.invoke('ytmusic-search', query, filter, limit),
+    getStream: (videoId: string) => ipcRenderer.invoke('ytmusic-get-stream', videoId),
+    getTrack: (videoId: string) => ipcRenderer.invoke('ytmusic-get-track', videoId),
+    getRelated: (videoId: string, limit?: number) => ipcRenderer.invoke('ytmusic-get-related', videoId, limit),
+    getPlaylist: (playlistId: string) => ipcRenderer.invoke('ytmusic-get-playlist', playlistId),
+    setCookies: (cookiesPath: string) => ipcRenderer.invoke('ytmusic-set-cookies', cookiesPath),
+    setQuality: (quality: 'high' | 'medium' | 'low') => ipcRenderer.invoke('ytmusic-set-quality', quality),
+  },
+
+  // Ad blocker
+  adblock: {
+    getStatus: () => ipcRenderer.invoke('adblock-get-status'),
+    setEnabled: (enabled: boolean) => ipcRenderer.invoke('adblock-set-enabled', enabled),
+  },
+
   // App info
   getAppVersion: () => ipcRenderer.invoke('get-app-version'),
   getPlatform: () => ipcRenderer.invoke('get-platform'),
@@ -159,6 +176,19 @@ declare global {
       openExternal: (url: string) => void
       getAppVersion: () => string
       getPlatform: () => string
+      ytmusic: {
+        search: (query: string, filter?: string, limit?: number) => Promise<{ success: boolean; data?: any; error?: string }>
+        getStream: (videoId: string) => Promise<{ success: boolean; data?: { streamUrl: string }; error?: string }>
+        getTrack: (videoId: string) => Promise<{ success: boolean; data?: any; error?: string }>
+        getRelated: (videoId: string, limit?: number) => Promise<{ success: boolean; data?: any[]; error?: string }>
+        getPlaylist: (playlistId: string) => Promise<{ success: boolean; data?: any[]; error?: string }>
+        setCookies: (cookiesPath: string) => Promise<{ success: boolean; error?: string }>
+        setQuality: (quality: 'high' | 'medium' | 'low') => Promise<{ success: boolean; error?: string }>
+      }
+      adblock: {
+        getStatus: () => Promise<{ success: boolean; enabled: boolean }>
+        setEnabled: (enabled: boolean) => Promise<{ success: boolean }>
+      }
     }
   }
 }
