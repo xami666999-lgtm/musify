@@ -17,6 +17,9 @@ extraMetadata:
   name: musify
   description: Musify desktop player
 asar: true
+toolsets:
+  wine: "1.0.1"
+  nsis: "1.2.1"
 linux:
   target:
     - deb
@@ -30,7 +33,7 @@ win:
   target:
     - nsis
   icon: desktop/icon.png
-  signAndEditExecutable: false
+  signExecutable: false
 nsis:
   oneClick: false
   perMachine: false
