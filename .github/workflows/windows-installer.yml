@@ -22,7 +22,7 @@ jobs:
         run: npm run desktop:build
       - name: Package installer
         shell: bash
-        run: npx electron-builder --win nsis --x64
+        run: npx electron-builder --win nsis --x64 --publish never
         env:
           CSC_IDENTITY_AUTO_DISCOVERY: "false"
       - name: Upload installer
