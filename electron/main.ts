@@ -21,13 +21,13 @@ function wrapHandler(handler: (...args: any[]) => Promise<any>) {
     return stripFunctions(result)
   }
 }
+
 import path from 'path'
 import fs from 'fs'
 import Store from 'electron-store'
 import { spawn, execFile } from 'child_process'
 import { fileURLToPath } from 'url'
 import { dirname } from 'path'
-import { emulatorProvider, builtInProviders, getProvider, getProviderForSystem, EmulatorProfile } from './emulator-provider'
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = dirname(__filename)
@@ -35,26 +35,14 @@ const __dirname = dirname(__filename)
 const store = new Store()
 let mainWindow: BrowserWindow | null = null
 let tray: Tray | null = null
-let database: any = null
 
 const isDev = !app.isPackaged
 const userDataPath = app.getPath('userData')
-const cacheDir = path.join(userDataPath, 'emulator-cache')
+const cacheDir = path.join(userDataPath, 'cache')
 const downloadsDir = path.join(userDataPath, 'downloads')
-const biosDir = path.join(userDataPath, 'bios')
-const savesDir = path.join(userDataPath, 'saves')
 
 async function initializeDatabase() {
-  try {
-    const { database: db } = await import('./database')
-    database = db
-    // Trigger lazy initialization
-    database.getSystems()
-    console.log('Database initialized successfully')
-  } catch (error) {
-    console.error('Database initialization failed:', error)
-    database = null
-  }
+  console.log('Music app - using localStorage for persistence (no database needed)')
 }
 
 function createWindow() {
@@ -412,9 +400,6 @@ app.on('window-all-closed', () => {
 
 app.on('will-quit', () => {
   unregisterGlobalShortcuts()
-  if (database) {
-    database.close()
-  }
 })
 
 // Window controls
