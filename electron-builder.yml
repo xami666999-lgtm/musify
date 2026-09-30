@@ -8,6 +8,7 @@ directories:
 files:
   - "!**/*"
   - desktop/main.mjs
+  - desktop/preload.cjs
   - package.json
 extraResources:
   - from: .output

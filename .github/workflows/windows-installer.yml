@@ -27,6 +27,11 @@ jobs:
           CSC_IDENTITY_AUTO_DISCOVERY: "false"
       - name: Upload installer
         shell: bash
-        run: gh release upload v1.0.0 release/Musify-Setup-1.0.0.exe --clobber
+        run: |
+          VERSION=$(node -p "require('./package.json').version")
+          if ! gh release view "v$VERSION" >/dev/null 2>&1; then
+            gh release create "v$VERSION" --title "Musify $VERSION" --notes "Settings, including automatic updates."
+          fi
+          gh release upload "v$VERSION" "release/Musify-Setup-$VERSION.exe" --clobber
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}

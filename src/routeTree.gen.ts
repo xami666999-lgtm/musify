@@ -16,6 +16,7 @@ import { Route as ChartsRouteImport } from './routes/charts'
 import { Route as LibraryRouteImport } from './routes/library'
 import { Route as LikedRouteImport } from './routes/liked'
 import { Route as SearchRouteImport } from './routes/search'
+import { Route as SettingsRouteImport } from './routes/settings'
 import { Route as SourcesRouteImport } from './routes/sources'
 import { Route as AlbumAlbumIdRouteImport } from './routes/album.$albumId'
 import { Route as GenreGenreIdRouteImport } from './routes/genre.$genreId'
@@ -56,6 +57,11 @@ const SearchRoute = SearchRouteImport.update({
   path: '/search',
   getParentRoute: () => rootRouteImport,
 } as any)
+const SettingsRoute = SettingsRouteImport.update({
+  id: '/settings',
+  path: '/settings',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const SourcesRoute = SourcesRouteImport.update({
   id: '/sources',
   path: '/sources',
@@ -85,6 +91,7 @@ export interface FileRoutesByFullPath {
   '/library': typeof LibraryRoute
   '/liked': typeof LikedRoute
   '/search': typeof SearchRoute
+  '/settings': typeof SettingsRoute
   '/sources': typeof SourcesRoute
   '/album/$albumId': typeof AlbumAlbumIdRoute
   '/genre/$genreId': typeof GenreGenreIdRoute
@@ -98,6 +105,7 @@ export interface FileRoutesByTo {
   '/library': typeof LibraryRoute
   '/liked': typeof LikedRoute
   '/search': typeof SearchRoute
+  '/settings': typeof SettingsRoute
   '/sources': typeof SourcesRoute
   '/album/$albumId': typeof AlbumAlbumIdRoute
   '/genre/$genreId': typeof GenreGenreIdRoute
@@ -112,6 +120,7 @@ export interface FileRoutesById {
   '/library': typeof LibraryRoute
   '/liked': typeof LikedRoute
   '/search': typeof SearchRoute
+  '/settings': typeof SettingsRoute
   '/sources': typeof SourcesRoute
   '/album/$albumId': typeof AlbumAlbumIdRoute
   '/genre/$genreId': typeof GenreGenreIdRoute
@@ -127,6 +136,7 @@ export interface FileRouteTypes {
     | '/library'
     | '/liked'
     | '/search'
+    | '/settings'
     | '/sources'
     | '/album/$albumId'
     | '/genre/$genreId'
@@ -140,6 +150,7 @@ export interface FileRouteTypes {
     | '/library'
     | '/liked'
     | '/search'
+    | '/settings'
     | '/sources'
     | '/album/$albumId'
     | '/genre/$genreId'
@@ -153,6 +164,7 @@ export interface FileRouteTypes {
     | '/library'
     | '/liked'
     | '/search'
+    | '/settings'
     | '/sources'
     | '/album/$albumId'
     | '/genre/$genreId'
@@ -167,6 +179,7 @@ export interface RootRouteChildren {
   LibraryRoute: typeof LibraryRoute
   LikedRoute: typeof LikedRoute
   SearchRoute: typeof SearchRoute
+  SettingsRoute: typeof SettingsRoute
   SourcesRoute: typeof SourcesRoute
   AlbumAlbumIdRoute: typeof AlbumAlbumIdRoute
   GenreGenreIdRoute: typeof GenreGenreIdRoute
@@ -224,6 +237,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SearchRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/settings': {
+      id: '/settings'
+      path: '/settings'
+      fullPath: '/settings'
+      preLoaderRoute: typeof SettingsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/sources': {
       id: '/sources'
       path: '/sources'
@@ -263,6 +283,7 @@ const rootRouteChildren: RootRouteChildren = {
   LibraryRoute: LibraryRoute,
   LikedRoute: LikedRoute,
   SearchRoute: SearchRoute,
+  SettingsRoute: SettingsRoute,
   SourcesRoute: SourcesRoute,
   AlbumAlbumIdRoute: AlbumAlbumIdRoute,
   GenreGenreIdRoute: GenreGenreIdRoute,

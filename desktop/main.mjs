@@ -1,7 +1,10 @@
-import { app, BrowserWindow, dialog } from "electron";
+import { app, BrowserWindow, dialog, ipcMain } from "electron";
 import { spawn } from "node:child_process";
+import { createWriteStream } from "node:fs";
+import { mkdir } from "node:fs/promises";
 import { createServer } from "node:net";
 import path from "node:path";
+import { fileURLToPath } from "node:url";
 
 const START_HTML = `data:text/html;charset=utf-8,${encodeURIComponent(`<!doctype html>
 <html><head><meta charset="utf-8"><title>Musify</title></head>
@@ -38,6 +41,91 @@ function setCompact(on) {
   });
   normalBounds = null;
 }
+
+let installerPath = "";
+let checking = false;
+let updateState = { status: "idle", version: "1.1.0", remote: "", percent: 0, message: "" };
+
+function send(patch) {
+  updateState = { ...updateState, ...patch };
+  if (win && !win.isDestroyed()) win.webContents.send("musify:update", updateState);
+}
+
+function isNewer(remote, local) {
+  const parse = (value) => String(value).replace(/^v/, "").split(".").map((part) => Number.parseInt(part, 10) || 0);
+  const next = parse(remote);
+  const current = parse(local);
+  const length = Math.max(next.length, current.length);
+  for (let i = 0; i < length; i += 1) {
+    if ((next[i] || 0) !== (current[i] || 0)) return (next[i] || 0) > (current[i] || 0);
+  }
+  return false;
+}
+
+async function checkForUpdates() {
+  if (checking) return updateState;
+  updateState = { ...updateState, version: app.getVersion() };
+  if (!app.isPackaged) {
+    send({ status: "dev", version: app.getVersion() });
+    return updateState;
+  }
+  checking = true;
+  send({ status: "checking", message: "" });
+  try {
+    const response = await fetch("https://api.github.com/repos/xami666999-lgtm/musify/releases/latest", {
+      headers: { Accept: "application/vnd.github+json", "User-Agent": "Musify" },
+    });
+    if (!response.ok) throw new Error("GitHub did not answer.");
+    const release = await response.json();
+    const remote = String(release.tag_name || "").replace(/^v/, "");
+    const asset = (release.assets || []).find((item) => String(item.name).endsWith(".exe"));
+    if (!asset || !isNewer(remote, app.getVersion())) {
+      send({ status: "current", remote, percent: 0 });
+      return updateState;
+    }
+    send({ status: "downloading", remote, percent: 0 });
+    const dir = path.join(app.getPath("temp"), "musify-updates");
+    await mkdir(dir, { recursive: true });
+    installerPath = path.join(dir, asset.name);
+    const download = await fetch(asset.browser_download_url, {
+      headers: { Accept: "application/octet-stream", "User-Agent": "Musify" },
+    });
+    if (!download.ok || !download.body) throw new Error("The update did not download.");
+    const total = Number(download.headers.get("content-length") || asset.size || 0);
+    const file = createWriteStream(installerPath);
+    const reader = download.body.getReader();
+    let received = 0;
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      received += value.byteLength;
+      if (total) send({ percent: Math.min(99, Math.round((received / total) * 100)) });
+      if (!file.write(Buffer.from(value))) await new Promise((resolve) => file.once("drain", resolve));
+    }
+    await new Promise((resolve, reject) => {
+      file.on("error", reject);
+      file.end(resolve);
+    });
+    send({ status: "ready", remote, percent: 100 });
+  } catch (error) {
+    installerPath = "";
+    send({ status: "error", message: error instanceof Error ? error.message : "Update failed." });
+  } finally {
+    checking = false;
+  }
+  return updateState;
+}
+
+function installUpdate() {
+  if (!installerPath) return;
+  const child = spawn(installerPath, [], { detached: true, stdio: "ignore" });
+  child.unref();
+  app.quit();
+}
+
+ipcMain.handle("musify:state", () => ({ ...updateState, version: app.getVersion() }));
+ipcMain.handle("musify:check", () => checkForUpdates());
+ipcMain.handle("musify:install", () => installUpdate());
 
 function freePort() {
   return new Promise((resolve, reject) => {
@@ -97,6 +185,7 @@ async function openWindow(url) {
     title: "Musify",
     autoHideMenuBar: true,
     webPreferences: {
+      preload: path.join(path.dirname(fileURLToPath(import.meta.url)), "preload.cjs"),
       contextIsolation: true,
       nodeIntegration: false,
       sandbox: true,

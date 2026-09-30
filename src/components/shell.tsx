@@ -15,6 +15,7 @@ import {
   Repeat,
   Repeat1,
   Search,
+  Settings,
   Shuffle,
   SkipBack,
   SkipForward,
@@ -27,6 +28,7 @@ import {
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { useEffect, useState, type ReactNode } from "react";
 import { useClock } from "@/lib/audio";
+import { autoUpdateEnabled, getDesktop } from "@/lib/desktop";
 import { cn } from "@/lib/cn";
 import { useHydrated, usePlayer } from "@/lib/player-store";
 import { formatTime } from "@/lib/types";
@@ -40,6 +42,7 @@ const NAV = [
   { to: "/liked", label: "Liked songs", icon: Heart, exact: false },
   { to: "/browse", label: "Artists & albums", icon: Disc3, exact: false },
   { to: "/sources", label: "Sources", icon: Globe, exact: false },
+  { to: "/settings", label: "Settings", icon: Settings, exact: false },
 ] as const;
 
 function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
@@ -526,6 +529,12 @@ export function Shell({ children }: { children: ReactNode }) {
   useEffect(() => {
     document.title = mini ? "Musify Mini" : "Musify";
   }, [mini]);
+
+  useEffect(() => {
+    const desktop = getDesktop();
+    if (!desktop || !autoUpdateEnabled()) return;
+    void desktop.check();
+  }, []);
 
   useEffect(() => {
     setNavOpen(false);
