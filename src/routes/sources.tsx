@@ -13,7 +13,7 @@ function SourcesPage() {
         <p className="text-xs font-semibold tracking-wide text-copper">Connected</p>
         <h2 className="mt-2 text-2xl font-bold tracking-tight">Deezer</h2>
         <p className="mt-2 text-pretty text-muted">
-          The catalog is Deezer. Full tracks stay on Deezer. Musify plays the preview.
+          The catalog is Deezer. Full tracks stay on Deezer. Mxsify plays the preview.
         </p>
         <Link to="/search" search={{ q: "", tab: "all" }} className="mt-4 inline-flex min-h-11 items-center text-sm font-medium text-copper">
           Search the catalog

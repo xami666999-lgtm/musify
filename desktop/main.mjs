@@ -7,9 +7,9 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 
 const START_HTML = `data:text/html;charset=utf-8,${encodeURIComponent(`<!doctype html>
-<html><head><meta charset="utf-8"><title>Musify</title></head>
+<html><head><meta charset="utf-8"><title>Mxsify</title></head>
 <body style="margin:0;background:#121212;color:#fff;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;display:grid;height:100vh;place-items:center">
-<p style="font-size:15px;letter-spacing:-0.01em">Starting Musify…</p>
+<p style="font-size:15px;letter-spacing:-0.01em">Starting Mxsify…</p>
 </body></html>`)}`;
 
 let server;
@@ -96,7 +96,7 @@ async function checkForUpdates() {
   send({ status: "checking", message: "" });
   try {
     const response = await fetch(`https://api.github.com/repos/${updateRepo}/releases/latest`, {
-      headers: { Accept: "application/vnd.github+json", "User-Agent": "Musify" },
+      headers: { Accept: "application/vnd.github+json", "User-Agent": "Mxsify" },
     });
     if (!response.ok) throw new Error("GitHub did not answer.");
     const release = await response.json();
@@ -111,7 +111,7 @@ async function checkForUpdates() {
     await mkdir(dir, { recursive: true });
     installerPath = path.join(dir, asset.name);
     const download = await fetch(asset.browser_download_url, {
-      headers: { Accept: "application/octet-stream", "User-Agent": "Musify" },
+      headers: { Accept: "application/octet-stream", "User-Agent": "Mxsify" },
     });
     if (!download.ok || !download.body) throw new Error("The update did not download.");
     const total = Number(download.headers.get("content-length") || asset.size || 0);
@@ -154,8 +154,8 @@ ipcMain.handle("musify:repo", (_event, value) => saveRepo(value));
 ipcMain.handle("musify:check", () => checkForUpdates());
 ipcMain.handle("musify:install", () => installUpdate());
 ipcMain.handle("musify:shortcut", () => {
-  ensureDesktopShortcut("Musify");
-  return { ok: true, path: path.join(app.getPath("desktop"), "Musify.lnk") };
+  ensureDesktopShortcut("Mxsify");
+  return { ok: true, path: path.join(app.getPath("desktop"), "Mxsify.lnk") };
 });
 
 function ensureDesktopShortcut(name) {
@@ -199,7 +199,7 @@ async function waitFor(url) {
     }
     await new Promise((resolve) => setTimeout(resolve, 250));
   }
-  throw new Error("Musify did not start.");
+  throw new Error("Mxsify did not start.");
 }
 
 function startServer(port) {
@@ -218,7 +218,7 @@ function startServer(port) {
   });
   server.on("exit", (code) => {
     if (code && code !== 0 && !win?.isDestroyed()) {
-      dialog.showErrorBox("Musify", "The player stopped unexpectedly.");
+      dialog.showErrorBox("Mxsify", "The player stopped unexpectedly.");
     }
   });
 }
@@ -231,7 +231,7 @@ async function openWindow(url) {
     minHeight: 640,
     show: false,
     backgroundColor: "#121212",
-    title: "Musify",
+    title: "Mxsify",
     autoHideMenuBar: true,
     webPreferences: {
       preload: path.join(path.dirname(fileURLToPath(import.meta.url)), "preload.cjs"),
@@ -243,8 +243,8 @@ async function openWindow(url) {
   win.setMenuBarVisibility(false);
   win.on("page-title-updated", (event, title) => {
     event.preventDefault();
-    if (title === "Musify Mini") setCompact(true);
-    else if (title === "Musify") setCompact(false);
+    if (title === "Mxsify Mini") setCompact(true);
+    else if (title === "Mxsify") setCompact(false);
   });
   win.on("minimize", () => {
     if (restoring) return;
@@ -273,7 +273,7 @@ if (!gotLock) {
   });
 
   app.whenReady().then(async () => {
-    ensureDesktopShortcut("Musify");
+    ensureDesktopShortcut("Mxsify");
     try {
       if (process.env.MUSIFY_DESKTOP_URL) {
         await openWindow(process.env.MUSIFY_DESKTOP_URL);
@@ -283,7 +283,7 @@ if (!gotLock) {
       startServer(port);
       await openWindow(`http://127.0.0.1:${port}`);
     } catch (error) {
-      dialog.showErrorBox("Musify", error instanceof Error ? error.message : "Could not open Musify.");
+      dialog.showErrorBox("Mxsify", error instanceof Error ? error.message : "Could not open Mxsify.");
       app.quit();
     }
   });

@@ -62,7 +62,7 @@ function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
     <div className="flex h-full min-h-0 flex-col bg-sidebar">
       <div className="px-4 py-5">
         <Link to="/" onClick={onNavigate} className="text-base font-bold tracking-tight text-fg">
-          Musify
+          Mxsify
         </Link>
       </div>
       <nav className="flex flex-col gap-1 px-2">
@@ -451,7 +451,7 @@ function MiniPlayer() {
             </div>
             <div className="absolute bottom-2 left-3 right-3">
               <p className="truncate text-[15px] font-semibold leading-tight">{track?.title ?? "Nothing playing"}</p>
-              <p className="truncate text-[13px] text-white/70">{track?.artist ?? "Musify"}</p>
+              <p className="truncate text-[13px] text-white/70">{track?.artist ?? "Mxsify"}</p>
             </div>
           </div>
           <div className="flex items-center gap-1 px-1 py-1">
@@ -527,7 +527,7 @@ export function Shell({ children }: { children: ReactNode }) {
   }, []);
 
   useEffect(() => {
-    document.title = mini ? "Musify Mini" : "Musify";
+    document.title = mini ? "Mxsify Mini" : "Mxsify";
   }, [mini]);
 
   useEffect(() => {
@@ -574,7 +574,7 @@ export function Shell({ children }: { children: ReactNode }) {
               <button type="button" aria-label="Menu" onClick={() => setNavOpen(true)} className="grid size-11 place-items-center">
                 <Menu className="size-5" />
               </button>
-              <span className="text-base font-bold tracking-tight">Musify</span>
+              <span className="text-base font-bold tracking-tight">Mxsify</span>
             </header>
             <main className="min-h-0 flex-1 overflow-y-auto">{children}</main>
           </div>

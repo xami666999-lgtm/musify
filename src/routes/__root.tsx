@@ -9,7 +9,7 @@ export const Route = createRootRoute({
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Musify" },
+      { title: "Mxsify" },
       { name: "theme-color", content: "#121212" },
     ],
     links: [

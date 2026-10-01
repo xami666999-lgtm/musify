@@ -1,5 +1,5 @@
 appId: com.musify.player
-productName: Musify
+productName: Mxsify
 executableName: musify
 artifactName: ${productName}-Setup-${version}.${ext}
 directories:
@@ -16,7 +16,7 @@ extraResources:
 extraMetadata:
   main: desktop/main.mjs
   name: musify
-  description: Musify desktop player
+  description: Mxsify desktop player
 asar: true
 toolsets:
   wine: "1.0.1"
@@ -28,7 +28,7 @@ linux:
   category: Audio
   icon: desktop/icon.png
   synopsis: Music player
-  maintainer: Musify
+  maintainer: Mxsify
   syncDesktopName: true
 win:
   target:
@@ -42,8 +42,8 @@ nsis:
   allowElevation: true
   createDesktopShortcut: true
   createStartMenuShortcut: true
-  shortcutName: Musify
-  uninstallDisplayName: Musify
+  shortcutName: Mxsify
+  uninstallDisplayName: Mxsify
   installerIcon: desktop/icon.ico
   uninstallerIcon: desktop/icon.ico
 mac:
@@ -52,4 +52,4 @@ mac:
   category: public.app-category.music
   icon: desktop/icon.png
 dmg:
-  title: Musify Setup
+  title: Mxsify Setup

@@ -15,6 +15,7 @@ function SettingsPage() {
   const autoplay = usePlayer((s) => s.autoplay);
   const toggleAutoplay = usePlayer((s) => s.toggleAutoplay);
   const [auto, setAuto] = useState(true);
+  const [update, setUpdate] = useState<UpdateState>(empty);
   const [repo, setRepo] = useState("xami666999-lgtm/musify");
   const [shortcut, setShortcut] = useState("");
   const desktop = getDesktop();
@@ -43,7 +44,7 @@ function SettingsPage() {
               ? update.message || "The update did not finish."
               : update.status === "dev"
                 ? "Updates install in the packaged app."
-                : "Musify checks GitHub when it opens.";
+                : "Mxsify checks GitHub when it opens.";
 
   return (
     <div className="page-enter mx-auto max-w-2xl px-4 py-8 md:px-8">
@@ -75,7 +76,7 @@ function SettingsPage() {
             className="min-h-11 w-56 rounded-md border border-line bg-transparent px-3 text-sm"
           />
         </Row>
-        <Row title="Automatic updates" detail="Look for a new version when Musify opens, then download it.">
+        <Row title="Automatic updates" detail="Look for a new version when Mxsify opens, then download it.">
           <Toggle
             on={auto}
             label="Toggle automatic updates"
@@ -89,7 +90,7 @@ function SettingsPage() {
         <div className="border-b border-line py-4">
           <p className="text-sm font-medium">Version {update.version || "1.1.0"}</p>
           <p className="mt-1 text-sm text-muted">{status}</p>
-          {shortcut ? <p className="mt-1 text-sm text-muted">{shortcut}</p> : <p className="mt-1 text-sm text-muted">A desktop shortcut is created when Musify opens.</p>}
+          {shortcut ? <p className="mt-1 text-sm text-muted">{shortcut}</p> : <p className="mt-1 text-sm text-muted">A desktop shortcut is created when Mxsify opens.</p>}
           <div className="mt-4 flex flex-wrap gap-2">
             <button
               type="button"

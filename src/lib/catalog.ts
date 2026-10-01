@@ -49,7 +49,7 @@ async function memo<T>(key: string, fn: () => Promise<T>): Promise<T> {
 
 async function dz<T>(path: string): Promise<T> {
   const response = await fetch(`https://api.deezer.com${path}`, {
-    headers: { accept: "application/json", "user-agent": "Musify/1.0" },
+    headers: { accept: "application/json", "user-agent": "Mxsify/1.0" },
     signal: AbortSignal.timeout(12000),
   });
   if (!response.ok) throw new Error("The catalog did not answer.");
