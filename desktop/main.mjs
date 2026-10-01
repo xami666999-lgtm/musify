@@ -1,6 +1,6 @@
 import { app, BrowserWindow, dialog, ipcMain } from "electron";
 import { spawn, execFile } from "node:child_process";
-import { createWriteStream } from "node:fs";
+import { createWriteStream, readFileSync, writeFileSync } from "node:fs";
 import { mkdir } from "node:fs/promises";
 import { createServer } from "node:net";
 import path from "node:path";
@@ -42,6 +42,28 @@ function setCompact(on) {
   normalBounds = null;
 }
 
+const DEFAULT_REPO = "xami666999-lgtm/musify";
+let updateRepo = DEFAULT_REPO;
+
+function cleanRepo(value) {
+  const repo = String(value ?? "").trim();
+  return /^[A-Za-z0-9_.-]+\/[A-Za-z0-9_.-]+$/.test(repo) ? repo : DEFAULT_REPO;
+}
+
+function loadRepo() {
+  try {
+    updateRepo = cleanRepo(JSON.parse(readFileSync(path.join(app.getPath("userData"), "update-repo.json"), "utf8")).repo);
+  } catch {
+    updateRepo = DEFAULT_REPO;
+  }
+}
+
+function saveRepo(value) {
+  updateRepo = cleanRepo(value);
+  writeFileSync(path.join(app.getPath("userData"), "update-repo.json"), JSON.stringify({ repo: updateRepo }));
+  return updateRepo;
+}
+
 let installerPath = "";
 let checking = false;
 let updateState = { status: "idle", version: "1.1.0", remote: "", percent: 0, message: "" };
@@ -63,6 +85,7 @@ function isNewer(remote, local) {
 }
 
 async function checkForUpdates() {
+  loadRepo();
   if (checking) return updateState;
   updateState = { ...updateState, version: app.getVersion() };
   if (!app.isPackaged) {
@@ -72,7 +95,7 @@ async function checkForUpdates() {
   checking = true;
   send({ status: "checking", message: "" });
   try {
-    const response = await fetch("https://api.github.com/repos/xami666999-lgtm/musify/releases/latest", {
+    const response = await fetch(`https://api.github.com/repos/${updateRepo}/releases/latest`, {
       headers: { Accept: "application/vnd.github+json", "User-Agent": "Musify" },
     });
     if (!response.ok) throw new Error("GitHub did not answer.");
@@ -123,7 +146,11 @@ function installUpdate() {
   app.quit();
 }
 
-ipcMain.handle("musify:state", () => ({ ...updateState, version: app.getVersion() }));
+ipcMain.handle("musify:state", () => {
+  loadRepo();
+  return { ...updateState, version: app.getVersion(), repo: updateRepo };
+});
+ipcMain.handle("musify:repo", (_event, value) => saveRepo(value));
 ipcMain.handle("musify:check", () => checkForUpdates());
 ipcMain.handle("musify:install", () => installUpdate());
 ipcMain.handle("musify:shortcut", () => {

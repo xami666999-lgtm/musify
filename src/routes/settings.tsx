@@ -15,13 +15,17 @@ function SettingsPage() {
   const autoplay = usePlayer((s) => s.autoplay);
   const toggleAutoplay = usePlayer((s) => s.toggleAutoplay);
   const [auto, setAuto] = useState(true);
+  const [repo, setRepo] = useState("xami666999-lgtm/musify");
   const [shortcut, setShortcut] = useState("");
   const desktop = getDesktop();
 
   useEffect(() => {
     setAuto(autoUpdateEnabled());
     if (!desktop) return;
-    void desktop.state().then(setUpdate);
+    void desktop.state().then((state) => {
+      setUpdate(state);
+      if (state.repo) setRepo(state.repo);
+    });
     return desktop.onUpdate(setUpdate);
   }, [desktop]);
 
@@ -62,6 +66,15 @@ function SettingsPage() {
 
       <section className="mt-8">
         <h2 className="text-xs font-semibold tracking-wide text-muted">Updates</h2>
+        <Row title="Update repository" detail="owner/name. Any account with write access can publish a higher version.">
+          <input
+            value={repo}
+            aria-label="Update repository"
+            onChange={(event) => setRepo(event.target.value)}
+            onBlur={() => desktop && void desktop.setRepo(repo).then(setRepo)}
+            className="min-h-11 w-56 rounded-md border border-line bg-transparent px-3 text-sm"
+          />
+        </Row>
         <Row title="Automatic updates" detail="Look for a new version when Musify opens, then download it.">
           <Toggle
             on={auto}

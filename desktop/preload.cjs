@@ -3,6 +3,7 @@ const { contextBridge, ipcRenderer } = require("electron");
 contextBridge.exposeInMainWorld("musifyDesktop", {
   state: () => ipcRenderer.invoke("musify:state"),
   check: () => ipcRenderer.invoke("musify:check"),
+  setRepo: (repo) => ipcRenderer.invoke("musify:repo", repo),
   install: () => ipcRenderer.invoke("musify:install"),
   shortcut: () => ipcRenderer.invoke("musify:shortcut"),
   onUpdate: (callback) => {

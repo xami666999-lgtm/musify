@@ -4,11 +4,13 @@ export type UpdateState = {
   remote: string;
   percent: number;
   message: string;
+  repo?: string;
 };
 
 export type DesktopBridge = {
   state: () => Promise<UpdateState>;
   check: () => Promise<UpdateState>;
+  setRepo: (repo: string) => Promise<string>;
   install: () => Promise<void>;
   shortcut?: () => Promise<{ ok: boolean; path: string }>;
   onUpdate: (callback: (state: UpdateState) => void) => () => void;

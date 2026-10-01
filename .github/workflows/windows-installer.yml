@@ -2,6 +2,11 @@ name: Windows installer
 
 on:
   workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - 'package.json'
+      - '.github/workflows/windows-installer.yml'
 
 permissions:
   contents: write
@@ -30,7 +35,7 @@ jobs:
         run: |
           VERSION=$(node -p "require('./package.json').version")
           if ! gh release view "v$VERSION" >/dev/null 2>&1; then
-            gh release create "v$VERSION" --title "Musify $VERSION" --notes "Settings checks GitHub for updates. A desktop shortcut is created when Musify opens."
+            gh release create "v$VERSION" --title "Musify $VERSION" --notes "Settings can follow any owner/repo. A push of a higher version publishes the installer for every installed copy."
           fi
           gh release upload "v$VERSION" "release/Musify-Setup-$VERSION.exe" --clobber
         env:
