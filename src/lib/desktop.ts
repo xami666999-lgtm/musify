@@ -10,6 +10,7 @@ export type DesktopBridge = {
   state: () => Promise<UpdateState>;
   check: () => Promise<UpdateState>;
   install: () => Promise<void>;
+  shortcut?: () => Promise<{ ok: boolean; path: string }>;
   onUpdate: (callback: (state: UpdateState) => void) => () => void;
 };
 

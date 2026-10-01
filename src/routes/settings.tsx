@@ -15,7 +15,7 @@ function SettingsPage() {
   const autoplay = usePlayer((s) => s.autoplay);
   const toggleAutoplay = usePlayer((s) => s.toggleAutoplay);
   const [auto, setAuto] = useState(true);
-  const [update, setUpdate] = useState<UpdateState>(empty);
+  const [shortcut, setShortcut] = useState("");
   const desktop = getDesktop();
 
   useEffect(() => {
@@ -76,6 +76,7 @@ function SettingsPage() {
         <div className="border-b border-line py-4">
           <p className="text-sm font-medium">Version {update.version || "1.1.0"}</p>
           <p className="mt-1 text-sm text-muted">{status}</p>
+          {shortcut ? <p className="mt-1 text-sm text-muted">{shortcut}</p> : <p className="mt-1 text-sm text-muted">A desktop shortcut is created when Musify opens.</p>}
           <div className="mt-4 flex flex-wrap gap-2">
             <button
               type="button"
@@ -90,6 +91,17 @@ function SettingsPage() {
                 Install and restart
               </button>
             ) : null}
+            <button
+              type="button"
+              disabled={!desktop}
+              onClick={() => {
+                const bridge = desktop as typeof desktop & { shortcut?: () => Promise<{ path?: string }> };
+                void bridge?.shortcut?.().then((result) => setShortcut(result?.path || "Shortcut saved on the desktop."));
+              }}
+              className="min-h-11 rounded-full border border-line px-4 text-sm font-semibold disabled:opacity-40"
+            >
+              Desktop shortcut
+            </button>
           </div>
         </div>
       </section>

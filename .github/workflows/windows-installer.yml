@@ -30,7 +30,7 @@ jobs:
         run: |
           VERSION=$(node -p "require('./package.json').version")
           if ! gh release view "v$VERSION" >/dev/null 2>&1; then
-            gh release create "v$VERSION" --title "Musify $VERSION" --notes "Settings, including automatic updates."
+            gh release create "v$VERSION" --title "Musify $VERSION" --notes "Settings checks GitHub for updates. A desktop shortcut is created when Musify opens."
           fi
           gh release upload "v$VERSION" "release/Musify-Setup-$VERSION.exe" --clobber
         env:

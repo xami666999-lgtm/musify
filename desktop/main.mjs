@@ -1,5 +1,5 @@
 import { app, BrowserWindow, dialog, ipcMain } from "electron";
-import { spawn } from "node:child_process";
+import { spawn, execFile } from "node:child_process";
 import { createWriteStream } from "node:fs";
 import { mkdir } from "node:fs/promises";
 import { createServer } from "node:net";
@@ -126,6 +126,28 @@ function installUpdate() {
 ipcMain.handle("musify:state", () => ({ ...updateState, version: app.getVersion() }));
 ipcMain.handle("musify:check", () => checkForUpdates());
 ipcMain.handle("musify:install", () => installUpdate());
+ipcMain.handle("musify:shortcut", () => {
+  ensureDesktopShortcut("Musify");
+  return { ok: true, path: path.join(app.getPath("desktop"), "Musify.lnk") };
+});
+
+function ensureDesktopShortcut(name) {
+  if (process.platform !== "win32") return;
+  const desktop = app.getPath("desktop");
+  const lnk = path.join(desktop, `${name}.lnk`);
+  const exe = process.execPath;
+  const work = path.dirname(exe);
+  const quote = (value) => value.replace(/'/g, "''");
+  const script = [
+    "$shell = New-Object -ComObject WScript.Shell",
+    `$shortcut = $shell.CreateShortcut('${quote(lnk)}')`,
+    `$shortcut.TargetPath = '${quote(exe)}'`,
+    `$shortcut.WorkingDirectory = '${quote(work)}'`,
+    `$shortcut.IconLocation = '${quote(exe)}'`,
+    "$shortcut.Save()",
+  ].join("; ");
+  execFile("powershell.exe", ["-NoProfile", "-ExecutionPolicy", "Bypass", "-Command", script], { windowsHide: true });
+}
 
 function freePort() {
   return new Promise((resolve, reject) => {
@@ -224,6 +246,7 @@ if (!gotLock) {
   });
 
   app.whenReady().then(async () => {
+    ensureDesktopShortcut("Musify");
     try {
       if (process.env.MUSIFY_DESKTOP_URL) {
         await openWindow(process.env.MUSIFY_DESKTOP_URL);
