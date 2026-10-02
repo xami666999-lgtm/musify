@@ -25,6 +25,7 @@ jobs:
         run: npm run build
         env:
           PAGES: "1"
+          VITE_PAGES: "1"
       - name: Add the iOS shell
         run: |
           mkdir -p site

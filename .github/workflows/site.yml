@@ -10,13 +10,10 @@ on:
       - 'package.json'
       - 'package-lock.json'
       - 'vite.config.ts'
-      - 'index.html'
       - '.github/workflows/site.yml'
 
 permissions:
-  contents: read
-  pages: write
-  id-token: write
+  contents: write
 
 concurrency:
   group: pages
@@ -24,9 +21,6 @@ concurrency:
 
 jobs:
   deploy:
-    environment:
-      name: github-pages
-      url: ${{ steps.deploy.outputs.page_url }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -39,13 +33,16 @@ jobs:
         run: npm run build
         env:
           PAGES: "1"
-      - name: Prepare pages
+          VITE_PAGES: "1"
+      - name: Publish the site branch
         run: |
           test -f .vercel/output/static/.html
           cp .vercel/output/static/.html .vercel/output/static/index.html
-          cp .vercel/output/static/.html .vercel/output/static/404.html
-      - uses: actions/upload-pages-artifact@v3
-        with:
-          path: .vercel/output/static
-      - id: deploy
-        uses: actions/deploy-pages@v4
+          cd .vercel/output/static
+          git init
+          git checkout -b site
+          git add -A
+          git -c user.name=xami666999-lgtm -c user.email=308808809+xami666999-lgtm@users.noreply.github.com commit -m "Publish Mxsify site"
+          git push --force "https://x-access-token:${GITHUB_TOKEN}@github.com/xami666999-lgtm/musify.git" site
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
