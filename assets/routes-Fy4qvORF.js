@@ -1,0 +1,1 @@
+import{t as e}from"./jsx-runtime-Dk72oS4N.js";import{t}from"./routes-9o3RHXgQ.js";var n=e();function r(){return(0,n.jsx)(t,{shelves:{fresh:[],made:[],genres:[]},failed:!0})}var i=()=>(0,n.jsx)(r,{});export{i as errorComponent};
