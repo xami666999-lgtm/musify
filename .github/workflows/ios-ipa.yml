@@ -1,0 +1,68 @@
+name: iOS package
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - 'package.json'
+      - '.github/workflows/ios-ipa.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  ipa:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - name: Build the web player
+        run: npm run build
+        env:
+          PAGES: "1"
+      - name: Add the iOS shell
+        run: |
+          mkdir -p site
+          cp -R .vercel/output/static/. site/
+          cp site/.html site/index.html
+          npm install --no-save @capacitor/core@7 @capacitor/cli@7 @capacitor/ios@7
+          cat > capacitor.config.json << 'EOF'
+          {
+            "appId": "com.mxsify.player",
+            "appName": "Mxsify",
+            "webDir": "site",
+            "bundledWebRuntime": false
+          }
+          EOF
+          npx cap add ios
+      - name: Package an unsigned IPA
+        run: |
+          xcodebuild \
+            -project ios/App/App.xcodeproj \
+            -scheme App \
+            -configuration Release \
+            -sdk iphoneos \
+            -derivedDataPath build \
+            CODE_SIGNING_ALLOWED=NO \
+            CODE_SIGNING_REQUIRED=NO \
+            CODE_SIGN_IDENTITY=""
+          APP=$(find build -name 'App.app' -type d | head -1)
+          test -n "$APP"
+          rm -rf Payload
+          mkdir Payload
+          cp -R "$APP" Payload/Mxsify.app
+          zip -qry "Mxsify-1.5.0-unsigned.ipa" Payload
+      - name: Upload
+        run: |
+          VERSION=$(node -p "require('./package.json').version")
+          if ! gh release view "v$VERSION" >/dev/null 2>&1; then
+            gh release create "v$VERSION" --title "Mxsify $VERSION" --notes "Site and iOS package."
+          fi
+          gh release upload "v$VERSION" Mxsify-*-unsigned.ipa --clobber
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}

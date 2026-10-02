@@ -1,0 +1,51 @@
+name: Site
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - 'src/**'
+      - 'public/**'
+      - 'package.json'
+      - 'package-lock.json'
+      - 'vite.config.ts'
+      - 'index.html'
+      - '.github/workflows/site.yml'
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deploy.outputs.page_url }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - name: Build static site
+        run: npm run build
+        env:
+          PAGES: "1"
+      - name: Prepare pages
+        run: |
+          test -f .vercel/output/static/.html
+          cp .vercel/output/static/.html .vercel/output/static/index.html
+          cp .vercel/output/static/.html .vercel/output/static/404.html
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: .vercel/output/static
+      - id: deploy
+        uses: actions/deploy-pages@v4

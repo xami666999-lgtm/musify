@@ -1,6 +1,6 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" role="img" aria-label="Musify">
-  <rect width="32" height="32" fill="#141311"/>
-  <rect x="3" y="3" width="26" height="26" fill="#C4622D"/>
-  <rect x="6" y="6" width="20" height="20" fill="#141311"/>
-  <path fill="#F4EFE6" d="M9 24V8h4.4l2.6 4.6L18.6 8H23v16h-3.6v-9.2L16.2 20h-.4l-3.2-5.2V24H9z"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" role="img" aria-label="Mxsify">
+  <rect width="32" height="32" rx="6" fill="#121212"/>
+  <rect x="3" y="3" width="26" height="26" rx="4" fill="#C4622D"/>
+  <rect x="6" y="6" width="20" height="20" rx="3" fill="#121212"/>
+  <path fill="#F4EFE6" d="M9 23.5V8.5h4.1l2.9 5.1L18.9 8.5H23v15h-3.4v-8.4L16.3 20h-.6l-3.3-4.9v8.4H9z"/>
 </svg>

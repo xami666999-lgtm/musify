@@ -1,4 +1,3 @@
-import { createServerFn } from "@tanstack/react-start";
 import { GENRES, type AlbumCard, type Genre, type Shelves, type Track } from "@/lib/types";
 
 const TTL = 10 * 60 * 1000;
@@ -47,16 +46,49 @@ async function memo<T>(key: string, fn: () => Promise<T>): Promise<T> {
   return val;
 }
 
-async function dz<T>(path: string): Promise<T> {
-  const response = await fetch(`https://api.deezer.com${path}`, {
+async function dzFetch<T>(url: string): Promise<T> {
+  const response = await fetch(url, {
     headers: { accept: "application/json", "user-agent": "Mxsify/1.0" },
     signal: AbortSignal.timeout(12000),
   });
   if (!response.ok) throw new Error("The catalog did not answer.");
-  const json = (await response.json()) as T & { error?: { message?: string } };
-  if (json && typeof json === "object" && "error" in json && json.error) {
-    throw new Error("The catalog did not answer.");
-  }
+  return (await response.json()) as T;
+}
+
+function dzJsonp<T>(url: string): Promise<T> {
+  return new Promise((resolve, reject) => {
+    const name = `mxsifyCb${Date.now().toString(36)}${Math.random().toString(36).slice(2, 8)}`;
+    const script = document.createElement("script");
+    const host = window as unknown as Record<string, unknown>;
+    const timer = window.setTimeout(() => {
+      cleanup();
+      reject(new Error("The catalog did not answer."));
+    }, 12000);
+    const cleanup = () => {
+      window.clearTimeout(timer);
+      delete host[name];
+      script.remove();
+    };
+    host[name] = (data: T) => {
+      cleanup();
+      resolve(data);
+    };
+    const join = url.includes("?") ? "&" : "?";
+    script.src = `${url}${join}output=jsonp&callback=${name}`;
+    script.onerror = () => {
+      cleanup();
+      reject(new Error("The catalog did not answer."));
+    };
+    document.head.appendChild(script);
+  });
+}
+
+async function dz<T>(path: string): Promise<T> {
+  const url = `https://api.deezer.com${path}`;
+  const json = (typeof window === "undefined" ? await dzFetch<T>(url) : await dzJsonp<T>(url)) as T & {
+    error?: { message?: string };
+  };
+  if (json && typeof json === "object" && json.error) throw new Error("The catalog did not answer.");
   return json;
 }
 
@@ -216,63 +248,39 @@ async function loadRelated(artist: string, exclude: string[]): Promise<Track[]> 
   return tracks;
 }
 
-export const getShelves = createServerFn({ method: "GET" }).handler(async () => loadShelves());
+export function getShelves() {
+  return loadShelves();
+}
 
-export const getCharts = createServerFn({ method: "GET" }).handler(async () => loadCharts());
+export function getCharts() {
+  return loadCharts();
+}
 
-export const getAlbum = createServerFn({ method: "GET" })
-  .validator((data: unknown) => {
-    if (typeof data !== "object" || data === null || !("id" in data) || typeof data.id !== "string") {
-      throw new Error("Unknown album");
-    }
-    return { id: assertId(data.id) };
-  })
-  .handler(async ({ data }) => loadAlbum(data.id));
+export function getAlbum(input: { data: { id: string } }) {
+  return loadAlbum(assertId(input.data.id));
+}
 
-export const getGenre = createServerFn({ method: "GET" })
-  .validator((data: unknown) => {
-    if (typeof data !== "object" || data === null || !("id" in data) || typeof data.id !== "string") {
-      throw new Error("Unknown genre");
-    }
-    return { id: data.id };
-  })
-  .handler(async ({ data }) => loadGenre(data.id));
+export function getGenre(input: { data: { id: string } }) {
+  return loadGenre(input.data.id);
+}
 
-export const getArtist = createServerFn({ method: "GET" })
-  .validator((data: unknown) => {
-    if (typeof data !== "object" || data === null || !("name" in data) || typeof data.name !== "string") {
-      throw new Error("Unknown artist");
-    }
-    return { name: data.name.slice(0, 160) };
-  })
-  .handler(async ({ data }) => loadArtist(data.name));
+export function getArtist(input: { data: { name: string } }) {
+  return loadArtist(input.data.name.slice(0, 160));
+}
 
-export const searchCatalog = createServerFn({ method: "GET" })
-  .validator((data: unknown) => {
-    if (typeof data !== "object" || data === null || !("q" in data) || typeof data.q !== "string") {
-      return { q: "" };
-    }
-    return { q: data.q.slice(0, 80) };
-  })
-  .handler(async ({ data }) => loadSearch(data.q));
+export function searchCatalog(input: { data: { q: string } }) {
+  return loadSearch(typeof input.data.q === "string" ? input.data.q.slice(0, 80) : "");
+}
 
-export const searchSongs = createServerFn({ method: "GET" })
-  .validator((data: unknown) => {
-    if (typeof data !== "object" || data === null || !("q" in data) || typeof data.q !== "string") {
-      return { q: "" };
-    }
-    return { q: data.q.slice(0, 80) };
-  })
-  .handler(async ({ data }) => loadSongs(data.q));
+export function searchSongs(input: { data: { q: string } }) {
+  return loadSongs(typeof input.data.q === "string" ? input.data.q.slice(0, 80) : "");
+}
 
-export const relatedTracks = createServerFn({ method: "POST" })
-  .validator((data: unknown) => {
-    if (typeof data !== "object" || data === null) throw new Error("Bad request");
-    const artist = "artist" in data && typeof data.artist === "string" ? data.artist.slice(0, 120) : "";
-    const exclude = "exclude" in data && Array.isArray(data.exclude) ? data.exclude.filter((id) => typeof id === "string").slice(0, 200) : [];
-    return { artist, exclude };
-  })
-  .handler(async ({ data }) => loadRelated(data.artist, data.exclude));
+export function relatedTracks(input: { data: { artist: string; exclude: string[] } }) {
+  const artist = input.data.artist.slice(0, 120);
+  const exclude = input.data.exclude.filter((id) => typeof id === "string").slice(0, 200);
+  return loadRelated(artist, exclude);
+}
 
 const albumPromises = new Map<string, Promise<{ album: AlbumCard; tracks: Track[] }>>();
 
