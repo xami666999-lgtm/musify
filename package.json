@@ -1,8 +1,8 @@
 {
   "name": "app-builder-workspace",
-  "version": "1.5.0",
+  "version": "1.6.0",
   "author": "Mxsify",
-  "homepage": "https://xami666999-lgtm.github.io/musify/",
+  "homepage": "https://xami666999-lgtm.github.io/",
   "desktopName": "musify.desktop",
   "private": true,
   "sideEffects": false,
