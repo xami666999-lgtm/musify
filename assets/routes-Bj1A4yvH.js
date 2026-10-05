@@ -1,0 +1,1 @@
+import{t as e}from"./jsx-runtime-Dk72oS4N.js";import{u as t}from"./index-BJksQtn5.js";import{t as n}from"./routes-CEo7BZ4D.js";var r=e();function i(){let e=t.useLoaderData();return(0,r.jsx)(n,{shelves:e})}export{i as component};
