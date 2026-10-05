@@ -35,7 +35,7 @@ jobs:
         run: |
           VERSION=$(node -p "require('./package.json').version")
           if ! gh release view "v$VERSION" >/dev/null 2>&1; then
-            gh release create "v$VERSION" --title "Mxsify $VERSION" --notes "The player is now Mxsify. The site and the desktop app use the same name."
+            gh release create "v$VERSION" --title "Mxsify $VERSION" --notes "YouTube sign-in, YouTube music search, and a hardcoded ad block. Site: https://xami666999-lgtm.github.io/youtube.html"
           fi
           gh release upload "v$VERSION" release/*Setup*.exe --clobber
         env:
