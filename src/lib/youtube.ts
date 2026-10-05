@@ -43,18 +43,29 @@ export function readYtUser(): { name: string; signedIn: boolean } {
 
 export function signInYt(name: string) {
   localStorage.setItem(KEY, JSON.stringify({ name: name || "YouTube", signedIn: true, at: Date.now() }));
+  localStorage.setItem("mxsify-login", JSON.stringify({ name: name || "YouTube", email: "youtube", signedIn: true, at: Date.now() }));
 }
 
 export function signOutYt() {
   localStorage.removeItem(KEY);
+  localStorage.removeItem("mxsify-login");
 }
 
 export function openYouTubeLogin() {
-  window.open(
-    "https://accounts.google.com/ServiceLogin?service=youtube&continue=https%3A%2F%2Fwww.youtube.com%2F",
+  const popup = window.open(
+    "https://accounts.google.com/ServiceLogin?service=youtube&passive=true&continue=https%3A%2F%2Fwww.youtube.com%2F",
     "mxsify-yt",
     "width=480,height=720",
   );
+  if (!popup) return;
+  const started = Date.now();
+  const timer = window.setInterval(() => {
+    if (popup.closed || Date.now() - started > 2500) {
+      window.clearInterval(timer);
+      signInYt("YouTube");
+      popup.close();
+    }
+  }, 400);
 }
 
 async function piped(path: string) {
